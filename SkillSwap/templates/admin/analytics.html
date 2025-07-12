@@ -3,6 +3,7 @@
 {% block title %}Analytics - Skillify Admin{% endblock %}
 
 {% block content %}
+<!-- Page Header -->
 <div class="row">
     <div class="col-12">
         <div class="d-flex justify-content-between align-items-center mb-4">
@@ -10,6 +11,7 @@
                 <i class="fas fa-chart-bar me-2"></i>Platform Analytics
             </h2>
             <div>
+                <!-- Download and Navigation Buttons -->
                 <a href="{{ url_for('download_analytics') }}" class="btn btn-success me-2">
                     <i class="fas fa-download me-1"></i>Download Analytics
                 </a>
@@ -21,8 +23,9 @@
     </div>
 </div>
 
-<!-- Key Metrics -->
+<!-- Key Performance Indicators (KPIs) -->
 <div class="row mb-4">
+    <!-- Total Users -->
     <div class="col-md-3">
         <div class="card bg-primary text-white">
             <div class="card-body">
@@ -38,6 +41,7 @@
             </div>
         </div>
     </div>
+    <!-- Total Skills -->
     <div class="col-md-3">
         <div class="card bg-success text-white">
             <div class="card-body">
@@ -53,6 +57,7 @@
             </div>
         </div>
     </div>
+    <!-- Total Exchanges -->
     <div class="col-md-3">
         <div class="card bg-info text-white">
             <div class="card-body">
@@ -68,6 +73,7 @@
             </div>
         </div>
     </div>
+    <!-- New Users This Month -->
     <div class="col-md-3">
         <div class="card bg-warning text-white">
             <div class="card-body">
@@ -85,8 +91,9 @@
     </div>
 </div>
 
-<!-- Exchange Statistics -->
+<!-- Exchange Performance Breakdown -->
 <div class="row mb-4">
+    <!-- Exchange Stats -->
     <div class="col-md-6">
         <div class="card">
             <div class="card-header">
@@ -105,6 +112,7 @@
                         <p class="text-muted">Pending</p>
                     </div>
                 </div>
+                <!-- Progress bar showing completion rate -->
                 <div class="progress mb-3">
                     {% set completion_rate = (completed_exchanges / total_exchanges * 100) if total_exchanges > 0 else 0 %}
                     <div class="progress-bar bg-success" style="width: {{ completion_rate }}%">
@@ -115,7 +123,8 @@
             </div>
         </div>
     </div>
-    
+
+    <!-- Moderation Insights -->
     <div class="col-md-6">
         <div class="card">
             <div class="card-header">
@@ -134,6 +143,7 @@
                         <p class="text-muted">Pending Reports</p>
                     </div>
                 </div>
+                <!-- Ratio of banned users -->
                 <div class="mt-3">
                     <small class="text-muted">
                         <i class="fas fa-info-circle me-1"></i>
@@ -145,8 +155,9 @@
     </div>
 </div>
 
-<!-- Skills by Category -->
+<!-- Skills by Category with Visual Distribution -->
 <div class="row">
+    <!-- Skill Category Table -->
     <div class="col-md-8">
         <div class="card">
             <div class="card-header">
@@ -191,7 +202,8 @@
             </div>
         </div>
     </div>
-    
+
+    <!-- Quick Summary Panel -->
     <div class="col-md-4">
         <div class="card">
             <div class="card-header">
@@ -234,4 +246,4 @@
         </div>
     </div>
 </div>
-{% endblock %} 
+{% endblock %}
