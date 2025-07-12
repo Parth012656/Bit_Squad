@@ -1,45 +1,44 @@
-// Main JavaScript file for SkillSwap
+// ========================
+// SkillSwap - Main Script
+// ========================
 
-// Global variables
-let currentUser = null;
-let skills = [];
+// Global state variables
+let currentUser = null;   // Stores info about the currently logged-in user
+let skills = [];          // List of all skills fetched from backend
 
-// Initialize the application
+// Wait for the page to load before initializing the app
 document.addEventListener('DOMContentLoaded', function() {
     initializeApp();
 });
 
+// Bootstraps the app once DOM is ready
 function initializeApp() {
-    // Add event listeners
     addEventListeners();
-    
-    // Initialize tooltips
     initializeTooltips();
-    
-    // Load initial data if needed
     loadInitialData();
 }
 
+// Attach all necessary event listeners for forms, filters, modals, etc.
 function addEventListeners() {
-    // Form submissions
+    // Handle all form submissions globally
     const forms = document.querySelectorAll('form');
     forms.forEach(form => {
         form.addEventListener('submit', handleFormSubmission);
     });
-    
-    // Search functionality
+
+    // Setup real-time search filter (debounced)
     const searchInput = document.getElementById('searchFilter');
     if (searchInput) {
         searchInput.addEventListener('input', debounce(handleSearch, 300));
     }
-    
-    // Filter changes
+
+    // Watch for filter dropdown changes
     const filterSelects = document.querySelectorAll('select[id$="Filter"]');
     filterSelects.forEach(select => {
         select.addEventListener('change', handleFilterChange);
     });
-    
-    // Modal events
+
+    // Modal open/close event hooks
     const modals = document.querySelectorAll('.modal');
     modals.forEach(modal => {
         modal.addEventListener('show.bs.modal', handleModalShow);
@@ -47,33 +46,32 @@ function addEventListeners() {
     });
 }
 
+// Initialize Bootstrap tooltips across the app
 function initializeTooltips() {
-    // Initialize Bootstrap tooltips
     const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
     tooltipTriggerList.map(function (tooltipTriggerEl) {
         return new bootstrap.Tooltip(tooltipTriggerEl);
     });
 }
 
+// Check current route and load relevant data on page load
 function loadInitialData() {
-    // Load skills if on skills page
     if (window.location.pathname === '/skills') {
-        loadSkills();
+        loadSkills();  // Load all skills only on skills page
     }
 }
 
-// Form handling
+// Basic form submission UX — disables button & shows loading state
 function handleFormSubmission(event) {
     const form = event.target;
     const submitButton = form.querySelector('button[type="submit"]');
-    
+
     if (submitButton) {
-        // Show loading state
         const originalText = submitButton.innerHTML;
         submitButton.innerHTML = '<span class="loading"></span> Loading...';
         submitButton.disabled = true;
-        
-        // Re-enable after a delay (in case of validation errors)
+
+        // Reset after 3s — this can be adjusted based on response time
         setTimeout(() => {
             submitButton.innerHTML = originalText;
             submitButton.disabled = false;
@@ -81,51 +79,51 @@ function handleFormSubmission(event) {
     }
 }
 
-// Search functionality
+// Live search filtering for skill cards (title, description, category)
 function handleSearch(event) {
     const searchTerm = event.target.value.toLowerCase();
     const skillCards = document.querySelectorAll('.skill-card');
-    
+
     skillCards.forEach(card => {
         const skillName = card.querySelector('.card-title').textContent.toLowerCase();
         const skillDescription = card.querySelector('.card-text').textContent.toLowerCase();
         const skillCategory = card.querySelector('.badge').textContent.toLowerCase();
-        
+
         const matches = skillName.includes(searchTerm) || 
                        skillDescription.includes(searchTerm) || 
                        skillCategory.includes(searchTerm);
-        
+
         card.style.display = matches ? 'block' : 'none';
     });
 }
 
-// Filter functionality
+// Triggered when any dropdown filter value changes
 function handleFilterChange(event) {
     const filterType = event.target.id.replace('Filter', '');
     const filterValue = event.target.value;
     
     console.log(`Filter changed: ${filterType} = ${filterValue}`);
-    // Implement filter logic here
+    // Add actual filtering logic here (based on backend/frontend setup)
 }
 
-// Modal handling
+// Logs when modal is opened (can be expanded later for data pre-fill)
 function handleModalShow(event) {
     const modal = event.target;
     console.log(`Modal opened: ${modal.id}`);
 }
 
+// Clears form inside modal when closed (resets modal state)
 function handleModalHide(event) {
     const modal = event.target;
     console.log(`Modal closed: ${modal.id}`);
-    
-    // Reset form if it's a modal with a form
+
     const form = modal.querySelector('form');
     if (form) {
         form.reset();
     }
 }
 
-// API functions
+// Fetch all available skills from backend API
 async function loadSkills() {
     try {
         const response = await fetch('/api/skills');
@@ -138,6 +136,7 @@ async function loadSkills() {
     }
 }
 
+// Send skill creation request to backend
 async function createSkill(skillData) {
     try {
         const response = await fetch('/api/skills', {
@@ -147,7 +146,7 @@ async function createSkill(skillData) {
             },
             body: JSON.stringify(skillData)
         });
-        
+
         if (response.ok) {
             const newSkill = await response.json();
             showNotification('Skill created successfully!', 'success');
@@ -162,7 +161,7 @@ async function createSkill(skillData) {
     }
 }
 
-// Utility functions
+// Debounce utility to limit function call frequency
 function debounce(func, wait) {
     let timeout;
     return function executedFunction(...args) {
@@ -175,8 +174,8 @@ function debounce(func, wait) {
     };
 }
 
+// Display alert-style notifications (auto-dismiss after 5s)
 function showNotification(message, type = 'info') {
-    // Create notification element
     const notification = document.createElement('div');
     notification.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
     notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
@@ -184,11 +183,9 @@ function showNotification(message, type = 'info') {
         ${message}
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     `;
-    
-    // Add to page
+
     document.body.appendChild(notification);
-    
-    // Auto-remove after 5 seconds
+
     setTimeout(() => {
         if (notification.parentNode) {
             notification.remove();
@@ -196,13 +193,13 @@ function showNotification(message, type = 'info') {
     }, 5000);
 }
 
+// Update UI with newly fetched skill data (to be implemented as needed)
 function updateSkillsDisplay(skills) {
-    // This function would update the skills display
-    // Implementation depends on the current page structure
     console.log('Skills loaded:', skills.length);
+    // Actual DOM injection goes here if needed
 }
 
-// Animation functions
+// Add temporary CSS animation to an element
 function animateElement(element, animation) {
     element.classList.add(animation);
     element.addEventListener('animationend', () => {
@@ -210,17 +207,18 @@ function animateElement(element, animation) {
     });
 }
 
-// Validation functions
+// Email validation (simple regex)
 function validateEmail(email) {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return re.test(email);
 }
 
+// Password must be at least 6 characters long
 function validatePassword(password) {
     return password.length >= 6;
 }
 
-// Export functions for use in templates
+// Make selected functions globally available to other scripts or templates
 window.SkillSwap = {
     createSkill,
     loadSkills,
@@ -228,4 +226,4 @@ window.SkillSwap = {
     validateEmail,
     validatePassword,
     animateElement
-}; 
+};
