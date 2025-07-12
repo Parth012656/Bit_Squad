@@ -6,7 +6,14 @@ import os
 from datetime import datetime
 from werkzeug.utils import secure_filename
 from functools import wraps
+<<<<<<< HEAD
 from config.database import config
+=======
+
+
+
+# Import extensions
+>>>>>>> c50048904eec15eaf85ae803b5817e09eafe61c7
 from extensions import db, login_manager
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 UPLOAD_FOLDER = 'static/images/profile_photos'
@@ -15,8 +22,15 @@ def allowed_file(filename):
 def create_app(config_name='development'):
     """Application factory pattern"""
     app = Flask(__name__)
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://skillswap_user:root@localhost/skillswap_db'
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
     
+<<<<<<< HEAD
     app.config.from_object(config[config_name])
+=======
+    # Load configuration
+>>>>>>> c50048904eec15eaf85ae803b5817e09eafe61c7
     
     app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
     
@@ -372,10 +386,17 @@ def create_app(config_name='development'):
     @login_required
     @admin_required
     def update_all_badges():
+<<<<<<< HEAD
+        """Update badges for all users based on current ratings and activity"""
+        try:
+            User.update_all_badges()
+            flash('All user badges have been updated successfully!')
+=======
         """Update badges for all users based on current ratings only"""
         try:
             User.update_all_badges()
             flash('All user badges have been updated based on ratings!')
+>>>>>>> 60c18a0359b7bf6ae677c56f69f1ddc24a93ee99
         except Exception as e:
             flash(f'Error updating badges: {str(e)}')
         return redirect(url_for('admin_dashboard'))
@@ -1054,4 +1075,4 @@ app = create_app()
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
-    app.run(debug=True, port=5001) 
+    app.run(debug=True, port=5001)
