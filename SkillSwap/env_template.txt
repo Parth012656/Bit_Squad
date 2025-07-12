@@ -1,0 +1,16 @@
+# SkillSwap Environment Configuration
+# Copy this file to .env and update the values
+
+# Flask Configuration
+FLASK_ENV=development
+SECRET_KEY=your-super-secret-key-change-this-in-production
+
+# Database Configuration
+DB_HOST=localhost
+DB_PORT=3306
+DB_NAME=skillswap_db
+DB_USER=skillswap_user
+DB_PASSWORD=your_password
+
+# Production Database URL (for production deployment)
+# DATABASE_URL=mysql://username:password@host:port/database 

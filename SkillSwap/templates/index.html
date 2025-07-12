@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+
+{% block title %}SkillSwap - Connect, Learn, Grow{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="hero-section text-center py-5">
+    <div class="container">
+        <h1 class="display-4 fw-bold text-primary mb-4">
+            <i class="fas fa-exchange-alt me-3"></i>SkillSwap
+        </h1>
+        <p class="lead mb-4">Connect with others, share your skills, and learn something new. The platform where knowledge meets opportunity.</p>
+        <div class="d-flex justify-content-center gap-3">
+            {% if not current_user.is_authenticated %}
+            <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg">
+                <i class="fas fa-user-plus me-2"></i>Get Started
+            </a>
+            <a href="{{ url_for('skills') }}" class="btn btn-outline-primary btn-lg">
+                <i class="fas fa-search me-2"></i>Browse Skills
+            </a>
+            {% else %}
+            <a href="{{ url_for('dashboard') }}" class="btn btn-primary btn-lg">
+                <i class="fas fa-tachometer-alt me-2"></i>My Dashboard
+            </a>
+            <a href="{{ url_for('skills') }}" class="btn btn-outline-primary btn-lg">
+                <i class="fas fa-search me-2"></i>Browse Skills
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Features Section -->
+<div class="features-section py-5 bg-light">
+    <div class="container">
+        <h2 class="text-center mb-5">Why Choose SkillSwap?</h2>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <div class="feature-icon mb-3">
+                            <i class="fas fa-users fa-3x text-primary"></i>
+                        </div>
+                        <h5 class="card-title">Connect with People</h5>
+                        <p class="card-text">Find like-minded individuals who share your interests and are willing to exchange knowledge.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <div class="feature-icon mb-3">
+                            <i class="fas fa-graduation-cap fa-3x text-primary"></i>
+                        </div>
+                        <h5 class="card-title">Learn New Skills</h5>
+                        <p class="card-text">Discover and learn skills from experts in various fields, from programming to cooking.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <div class="feature-icon mb-3">
+                            <i class="fas fa-handshake fa-3x text-primary"></i>
+                        </div>
+                        <h5 class="card-title">Fair Exchange</h5>
+                        <p class="card-text">Trade your expertise for someone else's knowledge in a mutually beneficial exchange.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- How It Works Section -->
+<div class="how-it-works py-5">
+    <div class="container">
+        <h2 class="text-center mb-5">How It Works</h2>
+        <div class="row g-4">
+            <div class="col-md-3">
+                <div class="text-center">
+                    <div class="step-number mb-3">
+                        <span class="badge bg-primary rounded-circle p-3">1</span>
+                    </div>
+                    <h5>Create Your Profile</h5>
+                    <p>Sign up and tell us about your skills and what you'd like to learn.</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="text-center">
+                    <div class="step-number mb-3">
+                        <span class="badge bg-primary rounded-circle p-3">2</span>
+                    </div>
+                    <h5>Browse Skills</h5>
+                    <p>Explore the skills available in our community and find what interests you.</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="text-center">
+                    <div class="step-number mb-3">
+                        <span class="badge bg-primary rounded-circle p-3">3</span>
+                    </div>
+                    <h5>Make an Exchange</h5>
+                    <p>Propose a skill exchange with someone who has what you need.</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="text-center">
+                    <div class="step-number mb-3">
+                        <span class="badge bg-primary rounded-circle p-3">4</span>
+                    </div>
+                    <h5>Learn & Grow</h5>
+                    <p>Meet up and exchange knowledge, building connections and skills.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Call to Action -->
+<div class="cta-section py-5 bg-primary text-white">
+    <div class="container text-center">
+        <h2 class="mb-4">Ready to Start Your Skill Exchange Journey?</h2>
+        <p class="lead mb-4">Join thousands of learners and teachers in our growing community.</p>
+        {% if not current_user.is_authenticated %}
+        <a href="{{ url_for('register') }}" class="btn btn-light btn-lg">
+            <i class="fas fa-rocket me-2"></i>Join SkillSwap Today
+        </a>
+        {% else %}
+        <a href="{{ url_for('skills') }}" class="btn btn-light btn-lg">
+            <i class="fas fa-search me-2"></i>Browse Available Skills
+        </a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}Report Content - SkillSwap{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-warning text-dark">
+                <h4 class="mb-0">
+                    <i class="fas fa-flag me-2"></i>Report Inappropriate Content
+                </h4>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Help us keep SkillSwap safe!</strong> Your report helps us maintain a positive community environment.
+                    All reports are reviewed by our moderation team.
+                </div>
+                
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="report_type" class="form-label">Report Type</label>
+                        <select class="form-select" id="report_type" name="report_type" required>
+                            <option value="">Select a reason for your report</option>
+                            <option value="inappropriate_skill">Inappropriate or offensive skill description</option>
+                            <option value="spam">Spam or misleading content</option>
+                            <option value="harassment">Harassment or bullying</option>
+                            <option value="fake_profile">Fake or impersonating profile</option>
+                            <option value="inappropriate_exchange">Inappropriate exchange behavior</option>
+                            <option value="other">Other (please specify)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" name="description" rows="5" required
+                                  placeholder="Please provide specific details about what you're reporting. Include relevant information that will help our moderation team understand the issue..."></textarea>
+                        <div class="form-text">
+                            Be specific and provide as much detail as possible. This helps us take appropriate action.
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Important:</strong> 
+                        <ul class="mb-0 mt-2">
+                            <li>False reports may result in account restrictions</li>
+                            <li>We take all reports seriously and investigate thoroughly</li>
+                            <li>Your report will be reviewed by our moderation team</li>
+                            <li>You may not receive updates on the outcome for privacy reasons</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="{{ url_for('skills') }}" class="btn btn-secondary">
+                            <i class="fas fa-times me-2"></i>Cancel
+                        </a>
+                        <button type="submit" class="btn btn-warning">
+                            <i class="fas fa-paper-plane me-2"></i>Submit Report
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
