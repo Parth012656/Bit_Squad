@@ -7,8 +7,7 @@ from datetime import datetime
 from werkzeug.utils import secure_filename
 from functools import wraps
 
-# Import configuration
-from config.database import config
+
 
 # Import extensions
 from extensions import db, login_manager
@@ -23,9 +22,11 @@ def allowed_file(filename):
 def create_app(config_name='development'):
     """Application factory pattern"""
     app = Flask(__name__)
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://skillswap_user:root@localhost/skillswap_db'
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
     
     # Load configuration
-    app.config.from_object(config[config_name])
     
     # Add upload folder configuration
     app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -235,7 +236,19 @@ def create_app(config_name='development'):
             db.session.add(platform_message)
             db.session.commit()
             
-            flash('Platform message created successfully!')
+            # Notify all users about the new platform message
+            all_users = User.query.filter_by(is_banned=False).all()
+            for user in all_users:
+                create_notification(
+                    user_id=user.id,
+                    title=f"Platform Update: {title}",
+                    message=f"New platform message: {message[:100]}{'...' if len(message) > 100 else ''}",
+                    notification_type='platform_message',
+                    related_id=platform_message.id,
+                    related_type='platform_message'
+                )
+            
+            flash('Platform message created and sent to all users!')
             return redirect(url_for('admin_messages'))
         
         return render_template('admin/create_message.html')
@@ -390,6 +403,47 @@ def create_app(config_name='development'):
             mimetype='text/csv',
             headers={'Content-Disposition': 'attachment; filename=skillify_analytics_report.csv'}
         )
+    
+    @app.route('/admin/update-badges', methods=['POST'])
+    @login_required
+    @admin_required
+    def update_all_badges():
+        """Update badges for all users based on current ratings and activity"""
+        try:
+            User.update_all_badges()
+            flash('All user badges have been updated successfully!')
+        except Exception as e:
+            flash(f'Error updating badges: {str(e)}')
+        return redirect(url_for('admin_dashboard'))
+    
+    @app.route('/admin/send-notification', methods=['POST'])
+    @login_required
+    @admin_required
+    def send_platform_notification():
+        """Send immediate platform-wide notification"""
+        title = request.form.get('title')
+        message = request.form.get('message')
+        notification_type = request.form.get('notification_type', 'info')
+        
+        if not title or not message:
+            flash('Title and message are required!')
+            return redirect(url_for('admin_dashboard'))
+        
+        # Send notification to all active users
+        all_users = User.query.filter_by(is_banned=False).all()
+        notification_count = 0
+        
+        for user in all_users:
+            create_notification(
+                user_id=user.id,
+                title=title,
+                message=message,
+                notification_type=notification_type
+            )
+            notification_count += 1
+        
+        flash(f'Platform notification sent to {notification_count} users!')
+        return redirect(url_for('admin_dashboard'))
     
     # Profile photo upload
     @app.route('/upload_photo', methods=['POST'])
@@ -820,4 +874,4 @@ app = create_app()
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
-    app.run(debug=True, port=5001) 
+    app.run(debug=True, port=5001)
