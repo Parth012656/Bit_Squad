@@ -6,36 +6,24 @@ import os
 from datetime import datetime
 from werkzeug.utils import secure_filename
 from functools import wraps
-
-# Import configuration
 from config.database import config
-
-# Import extensions
 from extensions import db, login_manager
-
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 UPLOAD_FOLDER = 'static/images/profile_photos'
-
-# Helper for allowed file
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
 def create_app(config_name='development'):
     """Application factory pattern"""
     app = Flask(__name__)
     
-    # Load configuration
     app.config.from_object(config[config_name])
     
-    # Add upload folder configuration
     app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
     
-    # Initialize extensions
     db.init_app(app)
     login_manager.init_app(app)
     login_manager.login_view = 'login'
     
-    # Import models after db is initialized
     from models.user import User
     from models.skill import Skill
     from models.exchange import Exchange
@@ -48,7 +36,6 @@ def create_app(config_name='development'):
     def load_user(user_id):
         return User.query.get(int(user_id))
     
-    # Admin decorator
     def admin_required(f):
         @wraps(f)
         def decorated_function(*args, **kwargs):
@@ -58,7 +45,6 @@ def create_app(config_name='development'):
             return f(*args, **kwargs)
         return decorated_function
     
-    # Admin dashboard
     @app.route('/admin')
     @login_required
     @admin_required
@@ -82,7 +68,6 @@ def create_app(config_name='development'):
                             recent_exchanges=recent_exchanges,
                             recent_reports=recent_reports)
     
-    # User management
     @app.route('/admin/users')
     @login_required
     @admin_required
@@ -108,7 +93,6 @@ def create_app(config_name='development'):
         user.ban_user(reason, current_user)
         db.session.commit()
         
-        # Log moderation action
         action = ModerationAction(
             action_type='user_banned',
             target_type='user',
@@ -131,7 +115,6 @@ def create_app(config_name='development'):
         user.unban_user()
         db.session.commit()
         
-        # Log moderation action
         action = ModerationAction(
             action_type='user_unbanned',
             target_type='user',
@@ -145,7 +128,6 @@ def create_app(config_name='development'):
         flash(f'User {user.name} has been unbanned.')
         return redirect(url_for('admin_users'))
     
-    # Content moderation
     @app.route('/admin/skills')
     @login_required
     @admin_required
@@ -164,7 +146,6 @@ def create_app(config_name='development'):
         skill = Skill.query.get_or_404(skill_id)
         reason = request.form.get('reason', 'Inappropriate content')
         
-        # Log moderation action
         action = ModerationAction(
             action_type='skill_rejected',
             target_type='skill',
@@ -174,14 +155,12 @@ def create_app(config_name='development'):
         )
         db.session.add(action)
         
-        # Remove the skill
         db.session.delete(skill)
         db.session.commit()
         
         flash(f'Skill "{skill.name}" has been rejected and removed.')
         return redirect(url_for('admin_skills'))
     
-    # Reports management
     @app.route('/admin/reports')
     @login_required
     @admin_required
@@ -198,7 +177,7 @@ def create_app(config_name='development'):
     def resolve_report(report_id):
         """Resolve a report"""
         report = Report.query.get_or_404(report_id)
-        action = request.form.get('action')  # 'dismiss', 'ban_user', 'remove_content'
+        action = request.form.get('action')
         reason = request.form.get('reason', 'Report resolved')
         
         report.status = 'resolved'
@@ -206,10 +185,9 @@ def create_app(config_name='development'):
         report.resolved_by = current_user.id
         db.session.commit()
         
-        flash(f'Report #{report.id} has been resolved.')
+        flash(f'Report
         return redirect(url_for('admin_reports'))
     
-    # Platform messaging
     @app.route('/admin/messages')
     @login_required
     @admin_required
@@ -237,7 +215,6 @@ def create_app(config_name='development'):
             db.session.add(platform_message)
             db.session.commit()
             
-            # Notify all users about the new platform message
             all_users = User.query.filter_by(is_banned=False).all()
             for user in all_users:
                 create_notification(
@@ -267,7 +244,6 @@ def create_app(config_name='development'):
         flash(f'Message "{message.title}" has been {status}.')
         return redirect(url_for('admin_messages'))
     
-    # Reports and analytics
     @app.route('/admin/reports/download')
     @login_required
     @admin_required
@@ -279,21 +255,17 @@ def create_app(config_name='development'):
         output = StringIO()
         writer = csv.writer(output)
         
-        # Write header
         writer.writerow(['Report Type', 'User Activity', 'Feedback', 'Swap Activity', 'Date', 'Reporter', 'Status'])
         
-        # Get all reports
         reports = Report.query.all()
         for report in reports:
             user = User.query.get(report.reporter_id)
             user_activity = f"User: {user.name if user else 'Unknown'}, Rating: {user.total_rating if user else 0}"
             
-            # Get user's feedback count
             feedback_count = Exchange.query.filter_by(
                 offering_user_id=user.id if user else 0
             ).filter(Exchange.feedback.isnot(None)).count()
             
-            # Get user's swap activity
             swap_count = Exchange.query.filter_by(
                 offering_user_id=user.id if user else 0, status='Completed'
             ).count()
@@ -320,22 +292,18 @@ def create_app(config_name='development'):
     @admin_required
     def admin_analytics():
         """Analytics dashboard"""
-        # User statistics
         total_users = User.query.count()
         new_users_this_month = User.query.filter(
             User.created_at >= datetime.utcnow().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
         ).count()
         
-        # Exchange statistics
         total_exchanges = Exchange.query.count()
         completed_exchanges = Exchange.query.filter_by(status='Completed').count()
         pending_exchanges = Exchange.query.filter_by(status='Pending').count()
         
-        # Skill statistics
         total_skills = Skill.query.count()
         skills_by_category = db.session.query(Skill.category, db.func.count(Skill.id)).group_by(Skill.category).all()
         
-        # Moderation statistics
         banned_users = User.query.filter_by(is_banned=True).count()
         pending_reports = Report.query.filter_by(status='pending').count()
         
@@ -361,10 +329,8 @@ def create_app(config_name='development'):
         output = StringIO()
         writer = csv.writer(output)
         
-        # Write header
         writer.writerow(['Metric', 'Value', 'Description'])
         
-        # Get analytics data
         total_users = User.query.count()
         new_users_this_month = User.query.filter(
             User.created_at >= datetime.utcnow().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
@@ -376,7 +342,6 @@ def create_app(config_name='development'):
         banned_users = User.query.filter_by(is_banned=True).count()
         pending_reports = Report.query.filter_by(status='pending').count()
         
-        # Write data
         writer.writerow(['Total Users', total_users, 'Total registered users'])
         writer.writerow(['New Users This Month', new_users_this_month, 'Users registered this month'])
         writer.writerow(['Total Skills', total_skills, 'Total skills shared'])
@@ -386,12 +351,10 @@ def create_app(config_name='development'):
         writer.writerow(['Banned Users', banned_users, 'Users currently banned'])
         writer.writerow(['Pending Reports', pending_reports, 'Reports awaiting review'])
         
-        # Add completion rate
         completion_rate = (completed_exchanges / total_exchanges * 100) if total_exchanges > 0 else 0
         writer.writerow(['Completion Rate', f"{completion_rate:.1f}%", 'Percentage of completed exchanges'])
         
-        # Add skills by category
-        writer.writerow([])  # Empty row
+        writer.writerow([])
         writer.writerow(['Skills by Category', '', ''])
         skills_by_category = db.session.query(Skill.category, db.func.count(Skill.id)).group_by(Skill.category).all()
         for category, count in skills_by_category:
@@ -430,7 +393,6 @@ def create_app(config_name='development'):
             flash('Title and message are required!')
             return redirect(url_for('admin_dashboard'))
         
-        # Send notification to all active users
         all_users = User.query.filter_by(is_banned=False).all()
         notification_count = 0
         
@@ -446,7 +408,6 @@ def create_app(config_name='development'):
         flash(f'Platform notification sent to {notification_count} users!')
         return redirect(url_for('admin_dashboard'))
     
-    # Profile photo upload
     @app.route('/upload_photo', methods=['POST'])
     @login_required
     def upload_photo():
@@ -466,8 +427,6 @@ def create_app(config_name='development'):
         else:
             flash('Invalid file type')
         return redirect(url_for('dashboard'))
-
-    # Profile visibility toggle
     @app.route('/toggle_visibility', methods=['POST'])
     @login_required
     def toggle_visibility():
@@ -475,8 +434,6 @@ def create_app(config_name='development'):
         db.session.commit()
         flash(f"Profile visibility set to {'Public' if current_user.is_public else 'Private'}.")
         return redirect(url_for('dashboard'))
-
-    # Skills list with pagination
     @app.route('/skills')
     def skills():
         page = request.args.get('page', 1, type=int)
@@ -485,7 +442,6 @@ def create_app(config_name='development'):
         search = request.args.get('search', '')
         per_page = 6
         
-        # Build query with filters
         skills_query = Skill.query.join(User).filter(User.is_public == True)
         
         if category:
@@ -503,7 +459,6 @@ def create_app(config_name='development'):
         
         skills_paginated = skills_query.paginate(page=page, per_page=per_page, error_out=False)
         
-        # Add user profile photo, badge, and rating to each skill
         for skill in skills_paginated.items:
             skill.user_profile_photo = skill.user.profile_photo if skill.user else None
             skill.user_name = skill.user.name if skill.user else 'Unknown'
@@ -518,15 +473,12 @@ def create_app(config_name='development'):
                             current_category=category,
                             current_level=level,
                             current_search=search)
-
-    # Swap request management (accept/reject/complete/cancel)
     @app.route('/exchange/<int:exchange_id>/action', methods=['POST'])
     @login_required
     def exchange_action(exchange_id):
         action = request.form.get('action')
         exchange = Exchange.query.get_or_404(exchange_id)
         
-        # Validate that the exchange has valid skill references
         if not exchange.offered_skill_id or not exchange.requested_skill_id:
             flash('Invalid exchange data. Please contact support.')
             return redirect(url_for('dashboard'))
@@ -557,15 +509,11 @@ def create_app(config_name='development'):
             print(f"Exchange update error: {e}")
         
         return redirect(url_for('dashboard'))
-
-
     
-    # Routes
     @app.route('/')
     def index():
         """Home page route"""
         return render_template('index.html')
-
     @app.route('/login', methods=['GET', 'POST'])
     def login():
         """Login route"""
@@ -576,7 +524,6 @@ def create_app(config_name='development'):
             
             if user and check_password_hash(user.password_hash, password):
                 login_user(user)
-                # Redirect admins to admin panel
                 if user.role == 'admin':
                     return redirect(url_for('admin_dashboard'))
                 else:
@@ -585,7 +532,6 @@ def create_app(config_name='development'):
                 flash('Invalid email or password')
         
         return render_template('login.html')
-
     @app.route('/register', methods=['GET', 'POST'])
     def register():
         """Registration route"""
@@ -607,14 +553,12 @@ def create_app(config_name='development'):
             return redirect(url_for('login'))
         
         return render_template('register.html')
-
     @app.route('/dashboard')
     @login_required
     def dashboard():
         """User dashboard"""
         skills = Skill.query.filter_by(user_id=current_user.id).all()
         
-        # Get user's exchanges (both offered and received)
         offered_exchanges = Exchange.query.filter_by(offering_user_id=current_user.id).all()
         received_exchanges = Exchange.query.filter_by(requesting_user_id=current_user.id).all()
         
@@ -622,30 +566,24 @@ def create_app(config_name='development'):
                             skills=skills,
                             offered_exchanges=offered_exchanges,
                             received_exchanges=received_exchanges)
-
     @app.route('/exchange/<int:skill_id>')
     @login_required
     def exchange(skill_id):
         """Skill exchange page"""
         skill = Skill.query.get_or_404(skill_id)
-        # Add user profile photo to skill
         skill.user_profile_photo = skill.user.profile_photo if skill.user else None
         return render_template('exchange.html', skill=skill)
-
     @app.route('/logout')
     @login_required
     def logout():
         """Logout route"""
         logout_user()
         return redirect(url_for('index'))
-
-    # API Routes
     @app.route('/api/skills', methods=['GET'])
     def api_skills():
         """API endpoint to get all skills"""
         skills = Skill.query.all()
         return jsonify([skill.to_dict() for skill in skills])
-
     @app.route('/api/skills', methods=['POST'])
     @login_required
     def api_create_skill():
@@ -668,7 +606,6 @@ def create_app(config_name='development'):
         """API endpoint to update a skill"""
         skill = Skill.query.get_or_404(skill_id)
         
-        # Check if user owns this skill
         if skill.user_id != current_user.id:
             return jsonify({'error': 'Unauthorized'}), 403
         
@@ -692,7 +629,6 @@ def create_app(config_name='development'):
         """Delete a skill"""
         skill = Skill.query.get_or_404(skill_id)
         
-        # Check if user owns this skill
         if skill.user_id != current_user.id:
             flash('You can only delete your own skills!')
             return redirect(url_for('dashboard'))
@@ -703,9 +639,7 @@ def create_app(config_name='development'):
         flash('Skill deleted successfully!')
         return redirect(url_for('dashboard'))
     
-
     
-    # User reporting functionality
     @app.route('/report/<string:target_type>/<int:target_id>', methods=['GET', 'POST'])
     @login_required
     def report_content(target_type, target_id):
@@ -724,7 +658,6 @@ def create_app(config_name='development'):
             db.session.add(report)
             db.session.commit()
             
-            # Create notification for all admins
             admins = User.query.filter_by(role='admin').all()
             for admin in admins:
                 create_notification(
@@ -741,7 +674,6 @@ def create_app(config_name='development'):
         
         return render_template('report.html', target_type=target_type, target_id=target_id)
     
-    # Edit Profile
     @app.route('/edit_profile', methods=['GET', 'POST'])
     @login_required
     def edit_profile():
@@ -753,7 +685,6 @@ def create_app(config_name='development'):
             current_user.gender = request.form.get('gender')
             current_user.bio = request.form.get('bio')
             
-            # Handle photo upload
             if 'photo' in request.files:
                 file = request.files['photo']
                 if file.filename != '' and allowed_file(file.filename):
@@ -767,30 +698,24 @@ def create_app(config_name='development'):
         
         return render_template('edit_profile.html')
     
-    # Leaderboard
     @app.route('/leaderboard')
     def leaderboard():
         """Show leaderboard of top users"""
-        # Get users with their stats
         users = User.query.filter_by(is_banned=False).all()
         
         for user in users:
-            # Calculate exchange count
             user.exchanges_count = Exchange.query.filter_by(
                 offering_user_id=user.id, status='Completed'
             ).count() + Exchange.query.filter_by(
                 requesting_user_id=user.id, status='Completed'
             ).count()
             
-            # Calculate skills count
             user.skills_count = Skill.query.filter_by(user_id=user.id).count()
         
-        # Sort by rating and achievements
         leaderboard_users = sorted(users, key=lambda x: (x.total_rating, x.daily_tasks_completed), reverse=True)[:20]
         
         return render_template('leaderboard.html', leaderboard_users=leaderboard_users)
     
-    # Notifications
     @app.route('/notifications')
     @login_required
     def notifications():
@@ -798,7 +723,6 @@ def create_app(config_name='development'):
         notifications = Notification.query.filter_by(user_id=current_user.id).order_by(Notification.created_at.desc()).all()
         return render_template('notifications.html', notifications=notifications)
     
-    # API Routes for Notifications
     @app.route('/api/notifications/<int:notification_id>/read', methods=['POST'])
     @login_required
     def mark_notification_read(notification_id):
@@ -818,7 +742,6 @@ def create_app(config_name='development'):
         db.session.commit()
         return jsonify({'success': True})
     
-    # Helper function to create notifications
     def create_notification(user_id, title, message, notification_type, related_id=None, related_type=None):
         """Create a new notification"""
         notification = Notification(
@@ -832,7 +755,6 @@ def create_app(config_name='development'):
         db.session.add(notification)
         db.session.commit()
     
-    # Update exchange feedback to create notifications and update ratings
     @app.route('/exchange/<int:exchange_id>/feedback', methods=['POST'])
     @login_required
     def exchange_feedback(exchange_id):
@@ -844,13 +766,10 @@ def create_app(config_name='development'):
             exchange.rating = rating
             exchange.feedback = feedback
             
-            # Update user ratings
             if exchange.offering_user_id == current_user.id:
-                # Current user is rating the requesting user
                 rated_user = User.query.get(exchange.requesting_user_id)
                 rated_user.update_rating(rating)
                 
-                # Create notification for rated user
                 create_notification(
                     exchange.requesting_user_id,
                     "New Rating Received",
@@ -860,11 +779,9 @@ def create_app(config_name='development'):
                     "exchange"
                 )
             else:
-                # Current user is rating the offering user
                 rated_user = User.query.get(exchange.offering_user_id)
                 rated_user.update_rating(rating)
                 
-                # Create notification for rated user
                 create_notification(
                     exchange.offering_user_id,
                     "New Rating Received",
@@ -878,21 +795,18 @@ def create_app(config_name='development'):
             flash('Feedback submitted!')
         return redirect(url_for('dashboard'))
     
-    # Update exchange creation to create notifications
     @app.route('/api/exchanges', methods=['POST'])
     @login_required
     def api_create_exchange():
         """API endpoint to create a new exchange proposal"""
         data = request.get_json()
         
-        # Validate that the user is not trying to exchange with themselves
         offering_skill = Skill.query.get_or_404(data['offering_skill_id'])
         requesting_skill = Skill.query.get_or_404(data['requesting_skill_id'])
         
         if offering_skill.user_id == requesting_skill.user_id:
             return jsonify({'error': 'You cannot exchange with yourself'}), 400
         
-        # Check if user already has a pending exchange for this skill
         existing_exchange = Exchange.query.filter_by(
             offering_user_id=current_user.id,
             requested_skill_id=data['requesting_skill_id'],
@@ -902,11 +816,9 @@ def create_app(config_name='development'):
         if existing_exchange:
             return jsonify({'error': 'You already have a pending exchange for this skill'}), 400
         
-        # Validate skill IDs before creating exchange
         if not data.get('offering_skill_id') or not data.get('requesting_skill_id'):
             return jsonify({'error': 'Invalid skill IDs provided'}), 400
         
-        # Verify skills exist
         offering_skill = Skill.query.get(data['offering_skill_id'])
         requesting_skill = Skill.query.get(data['requesting_skill_id'])
         
@@ -930,7 +842,6 @@ def create_app(config_name='development'):
             print(f"Exchange creation error: {e}")
             return jsonify({'error': 'Failed to create exchange'}), 500
         
-        # Create notification for the skill owner
         create_notification(
             requesting_skill.user_id,
             "New Exchange Request",
@@ -946,7 +857,6 @@ def create_app(config_name='development'):
             'message': 'Exchange proposal created successfully'
         }), 201
     
-    # Chat routes
     @app.route('/chat')
     @login_required
     def chat_list():
@@ -965,7 +875,6 @@ def create_app(config_name='development'):
         other_user = User.query.get_or_404(user_id)
         chat_room = current_user.get_or_create_chat_room(user_id)
         
-        # Mark messages as read
         ChatMessage.query.filter_by(
             chat_room_id=chat_room.id,
             sender_id=other_user.id,
@@ -981,7 +890,6 @@ def create_app(config_name='development'):
         """Get messages for a chat room"""
         chat_room = ChatRoom.query.get_or_404(chat_room_id)
         
-        # Check if user is part of this chat room
         if chat_room.user1_id != current_user.id and chat_room.user2_id != current_user.id:
             return jsonify({'error': 'Unauthorized'}), 403
         
@@ -1001,7 +909,6 @@ def create_app(config_name='development'):
         """Send a message in a chat room"""
         chat_room = ChatRoom.query.get_or_404(chat_room_id)
         
-        # Check if user is part of this chat room
         if chat_room.user1_id != current_user.id and chat_room.user2_id != current_user.id:
             return jsonify({'error': 'Unauthorized'}), 403
         
@@ -1009,20 +916,17 @@ def create_app(config_name='development'):
         if not message_text:
             return jsonify({'error': 'Message cannot be empty'}), 400
         
-        # Create new message
         message = ChatMessage(
             chat_room_id=chat_room_id,
             sender_id=current_user.id,
             message=message_text
         )
         
-        # Update last message time
         chat_room.last_message_at = datetime.utcnow()
         
         db.session.add(message)
         db.session.commit()
         
-        # Create notification for the other user
         other_user_id = chat_room.get_other_user(current_user.id).id
         create_notification(
             other_user_id,
@@ -1047,7 +951,6 @@ def create_app(config_name='development'):
         count = current_user.get_unread_chat_count()
         return jsonify({'count': count})
     
-    # Availability routes
     @app.route('/availability')
     @login_required
     def availability():
@@ -1094,7 +997,6 @@ def create_app(config_name='development'):
         """Schedule an exchange"""
         exchange = Exchange.query.get_or_404(exchange_id)
         
-        # Check if user is part of this exchange
         if exchange.offering_user_id != current_user.id and exchange.requesting_user_id != current_user.id:
             flash('You are not authorized to schedule this exchange')
             return redirect(url_for('dashboard'))
@@ -1108,7 +1010,6 @@ def create_app(config_name='development'):
             meeting_link = request.form.get('meeting_link')
             notes = request.form.get('notes')
             
-            # Create or update schedule
             schedule = ExchangeSchedule.query.filter_by(exchange_id=exchange_id).first()
             if not schedule:
                 schedule = ExchangeSchedule(exchange_id=exchange_id)
@@ -1124,7 +1025,6 @@ def create_app(config_name='development'):
             
             db.session.commit()
             
-            # Create notification for the other user
             other_user_id = exchange.requesting_user_id if exchange.offering_user_id == current_user.id else exchange.offering_user_id
             create_notification(
                 other_user_id,
@@ -1138,7 +1038,6 @@ def create_app(config_name='development'):
             flash('Exchange scheduled successfully!')
             return redirect(url_for('dashboard'))
         
-        # Get other user's availability
         other_user_id = exchange.requesting_user_id if exchange.offering_user_id == current_user.id else exchange.offering_user_id
         other_user = User.query.get(other_user_id)
         other_availability = other_user.get_availability() if other_user else []
@@ -1151,10 +1050,7 @@ def create_app(config_name='development'):
                             today=date.today().isoformat())
     
     return app
-
-# Create the app instance
 app = create_app()
-
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()

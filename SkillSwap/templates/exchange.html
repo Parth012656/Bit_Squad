@@ -1,10 +1,8 @@
 {% extends "base.html" %}
-
 {% block title %}Exchange - {{ skill.name }} - SkillSwap{% endblock %}
-
 {% block content %}
 <div class="row">
-    <!-- Skill Details -->
+    
     <div class="col-md-8">
         <div class="card shadow mb-4">
             <div class="card-header bg-primary text-white">
@@ -44,8 +42,7 @@
                 </div>
             </div>
         </div>
-
-        <!-- Exchange Form -->
+        
         <div class="card shadow">
             <div class="card-header bg-success text-white">
                 <h5 class="mb-0">
@@ -85,8 +82,7 @@
             </div>
         </div>
     </div>
-
-    <!-- Exchange Guidelines -->
+    
     <div class="col-md-4">
         <div class="card shadow mb-4">
             <div class="card-header bg-info text-white">
@@ -119,8 +115,7 @@
                 </ul>
             </div>
         </div>
-
-        <!-- Safety Tips -->
+        
         <div class="card shadow">
             <div class="card-header bg-warning text-dark">
                 <h5 class="mb-0">
@@ -150,8 +145,6 @@
         </div>
     </div>
 </div>
-
-<!-- Success Modal -->
 <div class="modal fade" id="successModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -173,7 +166,6 @@
     </div>
 </div>
 {% endblock %}
-
 {% block scripts %}
 <script>
 document.getElementById('exchangeForm').addEventListener('submit', function(e) {
@@ -187,13 +179,11 @@ document.getElementById('exchangeForm').addEventListener('submit', function(e) {
         return;
     }
     
-    // Show loading state
     const submitButton = this.querySelector('button[type="submit"]');
     const originalText = submitButton.innerHTML;
     submitButton.innerHTML = '<span class="loading"></span> Sending...';
     submitButton.disabled = true;
     
-    // Send actual API request
     fetch('/api/exchanges', {
         method: 'POST',
         headers: {
@@ -210,12 +200,10 @@ document.getElementById('exchangeForm').addEventListener('submit', function(e) {
         if (data.error) {
             alert('Error: ' + data.error);
         } else {
-            // Show success modal
             const successModal = new bootstrap.Modal(document.getElementById('successModal'));
             successModal.show();
         }
         
-        // Reset form
         this.reset();
         submitButton.innerHTML = originalText;
         submitButton.disabled = false;
@@ -227,8 +215,6 @@ document.getElementById('exchangeForm').addEventListener('submit', function(e) {
         submitButton.disabled = false;
     });
 });
-
-// Enable/disable submit button based on skill selection
 document.getElementById('offeredSkill').addEventListener('change', function() {
     const submitButton = document.querySelector('#exchangeForm button[type="submit"]');
     submitButton.disabled = !this.value;

@@ -1,7 +1,5 @@
 {% extends "base.html" %}
-
 {% block title %}Notifications - Skillify{% endblock %}
-
 {% block content %}
 <div class="row">
     <div class="col-12">
@@ -51,11 +49,9 @@
     </div>
 </div>
 {% endblock %}
-
 {% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Handle notification clicks
     const notificationItems = document.querySelectorAll('.notification-item');
     
     notificationItems.forEach(item => {
@@ -64,7 +60,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const targetType = this.dataset.targetType;
             const targetId = this.dataset.targetId;
             
-            // Mark as read
             fetch(`/api/notifications/${notificationId}/read`, {
                 method: 'POST',
                 headers: {
@@ -72,7 +67,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
             
-            // Redirect based on notification type
             if (targetType && targetId) {
                 switch(targetType) {
                     case 'exchange':
@@ -91,7 +85,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
-
 function markAllAsRead() {
     fetch('/api/notifications/mark-all-read', {
         method: 'POST',

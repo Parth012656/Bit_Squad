@@ -1,19 +1,17 @@
 from extensions import db
 from datetime import datetime, time
-
 class Availability(db.Model):
     __tablename__ = 'availabilities'
     
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    day_of_week = db.Column(db.String(10), nullable=False)  # Monday, Tuesday, etc.
+    day_of_week = db.Column(db.String(10), nullable=False)
     start_time = db.Column(db.Time, nullable=False)
     end_time = db.Column(db.Time, nullable=False)
     is_available = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
-    # Relationships
     user = db.relationship('User', backref='availabilities')
     
     def to_dict(self):
@@ -27,7 +25,6 @@ class Availability(db.Model):
     
     def __repr__(self):
         return f'<Availability {self.day_of_week} {self.start_time}-{self.end_time}>'
-
 class ExchangeSchedule(db.Model):
     __tablename__ = 'exchange_schedules'
     
@@ -36,15 +33,14 @@ class ExchangeSchedule(db.Model):
     scheduled_date = db.Column(db.Date, nullable=False)
     start_time = db.Column(db.Time, nullable=False)
     end_time = db.Column(db.Time, nullable=False)
-    location = db.Column(db.String(200))  # Physical or virtual location
-    meeting_type = db.Column(db.String(20), default='in_person')  # in_person, virtual, hybrid
-    meeting_link = db.Column(db.String(500))  # For virtual meetings
+    location = db.Column(db.String(200))
+    meeting_type = db.Column(db.String(20), default='in_person')
+    meeting_link = db.Column(db.String(500))
     notes = db.Column(db.Text)
-    status = db.Column(db.String(20), default='scheduled')  # scheduled, completed, cancelled
+    status = db.Column(db.String(20), default='scheduled')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
-    # Relationships
     exchange = db.relationship('Exchange', backref='schedules')
     
     def to_dict(self):

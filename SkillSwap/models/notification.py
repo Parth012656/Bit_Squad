@@ -1,9 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
-
-# Import db from extensions
 from extensions import db
-
 class Notification(db.Model):
     __tablename__ = 'notifications'
     
@@ -11,13 +8,12 @@ class Notification(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     title = db.Column(db.String(200), nullable=False)
     message = db.Column(db.Text, nullable=False)
-    notification_type = db.Column(db.String(50), nullable=False)  # swap_request, ban, report, achievement, etc.
+    notification_type = db.Column(db.String(50), nullable=False)
     is_read = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
-    # Optional reference to related content
-    related_id = db.Column(db.Integer)  # ID of related exchange, report, etc.
-    related_type = db.Column(db.String(50))  # Type of related content
+    related_id = db.Column(db.Integer)
+    related_type = db.Column(db.String(50))
     
     def to_dict(self):
         return {

@@ -1,7 +1,5 @@
 {% extends "base.html" %}
-
 {% block title %}Manage Availability - Skillify{% endblock %}
-
 {% block content %}
 <div class="row">
     <div class="col-12">
@@ -15,7 +13,6 @@
         </div>
     </div>
 </div>
-
 <div class="row">
     <div class="col-md-8 mx-auto">
         <div class="card">
@@ -82,7 +79,7 @@
             </div>
         </div>
         
-        <!-- Current Availability Display -->
+        
         <div class="card mt-4">
             <div class="card-header">
                 <h5 class="mb-0">
@@ -117,7 +114,7 @@
             </div>
         </div>
         
-        <!-- Tips Section -->
+        
         <div class="card mt-4">
             <div class="card-header bg-info text-white">
                 <h5 class="mb-0">
@@ -137,11 +134,9 @@
     </div>
 </div>
 {% endblock %}
-
 {% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Handle form submission
     const form = document.querySelector('form');
     form.addEventListener('submit', function(e) {
         e.preventDefault();
@@ -149,7 +144,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const formData = new FormData();
         const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
         
-        // Collect data for each day
         days.forEach(day => {
             const startTime = document.querySelector(`input[name="start_time_${day}"]`).value;
             const endTime = document.querySelector(`input[name="end_time_${day}"]`).value;
@@ -163,7 +157,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         
-        // Submit the form
         fetch('{{ url_for("update_availability") }}', {
             method: 'POST',
             body: formData
@@ -181,7 +174,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Validate time inputs
     const timeInputs = document.querySelectorAll('input[type="time"]');
     timeInputs.forEach(input => {
         input.addEventListener('change', function() {

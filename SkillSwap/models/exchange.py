@@ -1,14 +1,11 @@
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
-
-# Import db from extensions
 from extensions import db
-
 class Exchange(db.Model):
     __tablename__ = 'exchanges'
     
     id = db.Column(db.Integer, primary_key=True)
-    status = db.Column(db.String(20), default='Pending')  # Pending, Accepted, Completed, Cancelled
+    status = db.Column(db.String(20), default='Pending')
     message = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -25,7 +22,6 @@ class Exchange(db.Model):
     rating = db.Column(db.Integer, nullable=True)
     feedback = db.Column(db.Text, nullable=True)
     
-    # Foreign Keys
     offering_user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     requesting_user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     offered_skill_id = db.Column(db.Integer, db.ForeignKey('skills.id'), nullable=False)

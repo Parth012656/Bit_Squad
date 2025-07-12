@@ -1,9 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
-
-# Import db from extensions
 from extensions import db
-
 class Skill(db.Model):
     __tablename__ = 'skills'
     
@@ -11,15 +8,13 @@ class Skill(db.Model):
     name = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text, nullable=False)
     category = db.Column(db.String(50), nullable=False)
-    level = db.Column(db.String(20), default='Beginner')  # Beginner, Intermediate, Advanced, Expert
+    level = db.Column(db.String(20), default='Beginner')
     is_available = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
-    # Foreign Keys
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     
-    # Relationships
     exchanges_offered = db.relationship('Exchange', foreign_keys='Exchange.offered_skill_id', backref='offered_skill', lazy=True)
     exchanges_requested = db.relationship('Exchange', foreign_keys='Exchange.requested_skill_id', backref='requested_skill', lazy=True)
     

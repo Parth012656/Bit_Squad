@@ -1,10 +1,8 @@
 {% extends "base.html" %}
-
 {% block title %}Browse Skills - Skillify{% endblock %}
-
 {% block content %}
 <div class="row">
-    <!-- Filters Sidebar -->
+    
     <div class="col-md-3">
         <div class="card shadow">
             <div class="card-header text-white">
@@ -46,8 +44,7 @@
             </div>
         </div>
     </div>
-
-    <!-- Skills Grid -->
+    
     <div class="col-md-9">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h4>
@@ -62,7 +59,6 @@
                 </button>
             </div>
         </div>
-
         <div id="skillsGrid" class="row g-4">
             {% if skills %}
                 {% for skill in skills %}
@@ -93,7 +89,7 @@
                                 </div>
                             </div>
                             
-                            <!-- Skills Required and Offered -->
+                            
                             <div class="mb-2">
                                 <small class="text-muted">
                                     <i class="fas fa-graduation-cap me-1"></i>Skills Offered: {{ skill.user_skills_count or 0 }}
@@ -114,7 +110,7 @@
                                 </small>
                             </div>
                             
-                            <!-- User Rating -->
+                            
                             {% if skill.user_rating and skill.user_rating > 0 %}
                             <div class="mb-2">
                                 <div class="d-flex align-items-center">
@@ -174,7 +170,6 @@
                 </div>
             {% endif %}
         </div>
-
         <div id="skillsList" class="d-none">
             {% if skills %}
                 {% for skill in skills %}
@@ -210,14 +205,12 @@
         </div>
     </div>
 </div>
-
-<!-- Pagination -->
 {% if pagination and pagination.pages > 1 %}
 <div class="row mt-4">
     <div class="col-12">
         <nav aria-label="Skills pagination">
             <ul class="pagination justify-content-center">
-                <!-- Previous page -->
+                
                 {% if pagination.has_prev %}
                 <li class="page-item">
                     <a class="page-link" href="{{ url_for('skills', page=pagination.prev_num) }}">
@@ -231,8 +224,7 @@
                     </span>
                 </li>
                 {% endif %}
-
-                <!-- Page numbers -->
+                
                 {% for page_num in pagination.iter_pages(left_edge=2, left_current=2, right_current=3, right_edge=2) %}
                     {% if page_num %}
                         {% if page_num != pagination.page %}
@@ -250,8 +242,7 @@
                     </li>
                     {% endif %}
                 {% endfor %}
-
-                <!-- Next page -->
+                
                 {% if pagination.has_next %}
                 <li class="page-item">
                     <a class="page-link" href="{{ url_for('skills', page=pagination.next_num) }}">
@@ -268,7 +259,7 @@
             </ul>
         </nav>
         
-        <!-- Page info -->
+        
         <div class="text-center text-muted mt-2">
             <small>
                 Showing {{ pagination.items|length }} of {{ pagination.total }} skills
@@ -279,7 +270,6 @@
 </div>
 {% endif %}
 {% endblock %}
-
 {% block scripts %}
 <script>
 function applyFilters() {
@@ -287,16 +277,13 @@ function applyFilters() {
     const level = document.getElementById('levelFilter').value;
     const search = document.getElementById('searchFilter').value;
     
-    // Build query parameters
     const params = new URLSearchParams();
     if (category) params.append('category', category);
     if (level) params.append('level', level);
     if (search) params.append('search', search);
     
-    // Redirect to filtered results
     window.location.href = `/skills?${params.toString()}`;
 }
-
 function setView(view) {
     const gridView = document.getElementById('skillsGrid');
     const listView = document.getElementById('skillsList');

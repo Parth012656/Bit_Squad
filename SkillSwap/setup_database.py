@@ -1,21 +1,15 @@
-#!/usr/bin/env python3
 """
 SkillSwap Database Setup Script
 This script helps set up the database connection and create tables.
 """
-
 import os
 import sys
 from dotenv import load_dotenv
-
-# Load environment variables
 load_dotenv()
-
 def check_database_connection():
     """Check if the database connection is properly configured"""
     print("🔍 Checking database configuration...")
     
-    # Check required environment variables
     required_vars = ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD']
     missing_vars = []
     
@@ -37,7 +31,6 @@ DB_PASSWORD=your_password
     
     print("✅ Environment variables configured")
     return True
-
 def test_database_connection():
     """Test the database connection"""
     try:
@@ -45,15 +38,12 @@ def test_database_connection():
         from extensions import db
         from flask import Flask
         
-        # Create a test app
         app = Flask(__name__)
         app.config.from_object(config['development'])
         
-        # Initialize database
         db.init_app(app)
         
         with app.app_context():
-            # Test connection
             db.engine.execute('SELECT 1')
             print("✅ Database connection successful!")
             return True
@@ -66,7 +56,6 @@ def test_database_connection():
         print("3. Ensure the database 'skillswap_db' exists")
         print("4. Check if the user has proper permissions")
         return False
-
 def create_tables():
     """Create database tables"""
     try:
@@ -77,15 +66,12 @@ def create_tables():
         from models.skill import Skill
         from models.exchange import Exchange
         
-        # Create app
         app = Flask(__name__)
         app.config.from_object(config['development'])
         
-        # Initialize database
         db.init_app(app)
         
         with app.app_context():
-            # Create all tables
             db.create_all()
             print("✅ Database tables created successfully!")
             return True
@@ -93,21 +79,17 @@ def create_tables():
     except Exception as e:
         print(f"❌ Failed to create tables: {e}")
         return False
-
 def main():
     """Main setup function"""
     print("🚀 SkillSwap Database Setup")
     print("=" * 40)
     
-    # Check configuration
     if not check_database_connection():
         sys.exit(1)
     
-    # Test connection
     if not test_database_connection():
         sys.exit(1)
     
-    # Create tables
     if not create_tables():
         sys.exit(1)
     
@@ -116,6 +98,5 @@ def main():
     print("1. Run the MySQL setup script: database_setup.sql")
     print("2. Start the Flask application: python app.py")
     print("3. Access the application at: http://localhost:5000")
-
 if __name__ == '__main__':
     main() 

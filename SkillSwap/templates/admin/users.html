@@ -1,7 +1,5 @@
 {% extends "base.html" %}
-
 {% block title %}User Management - Skillify Admin{% endblock %}
-
 {% block content %}
 <div class="row">
     <div class="col-12">
@@ -15,7 +13,6 @@
         </div>
     </div>
 </div>
-
 <div class="row">
     <div class="col-12">
         <div class="card">
@@ -92,7 +89,7 @@
                     </table>
                 </div>
                 
-                <!-- Pagination -->
+                
                 {% if users.pages > 1 %}
                 <nav aria-label="Users pagination">
                     <ul class="pagination justify-content-center">
@@ -139,8 +136,6 @@
         </div>
     </div>
 </div>
-
-<!-- Ban User Modals -->
 {% for user in users.items %}
 {% if not user.is_banned %}
 <div class="modal fade" id="banModal{{ user.id }}" tabindex="-1">

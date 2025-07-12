@@ -2,10 +2,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
-
-# Import db from extensions
 from extensions import db
-
 class User(UserMixin, db.Model):
     __tablename__ = 'users'
     
@@ -15,30 +12,28 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(255), nullable=False)
     bio = db.Column(db.Text)
     location = db.Column(db.String(100))
-    gender = db.Column(db.String(20))  # male, female, other, prefer_not_to_say
-    achievements = db.Column(db.Text)  # JSON string of achievements
+    gender = db.Column(db.String(20))
+    achievements = db.Column(db.Text)
     daily_tasks_completed = db.Column(db.Integer, default=0)
     weekly_tasks_completed = db.Column(db.Integer, default=0)
     total_rating = db.Column(db.Float, default=0.0)
     total_ratings_count = db.Column(db.Integer, default=0)
-    badge = db.Column(db.String(20), default='bronze')  # bronze, silver, gold
+    badge = db.Column(db.String(20), default='bronze')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    profile_photo = db.Column(db.String(255), nullable=True)  # URL or filename
+    profile_photo = db.Column(db.String(255), nullable=True)
     is_public = db.Column(db.Boolean, default=True)
-    role = db.Column(db.String(20), default='user')  # 'user', 'admin', 'moderator'
+    role = db.Column(db.String(20), default='user')
     is_banned = db.Column(db.Boolean, default=False)
     ban_reason = db.Column(db.Text)
     banned_at = db.Column(db.DateTime)
     banned_by = db.Column(db.Integer, db.ForeignKey('users.id'))
     
-    # Relationships
     skills = db.relationship('Skill', backref='user', lazy=True)
     exchanges_offered = db.relationship('Exchange', foreign_keys='Exchange.offering_user_id', backref='offering_user', lazy=True)
     exchanges_requested = db.relationship('Exchange', foreign_keys='Exchange.requesting_user_id', backref='requesting_user', lazy=True)
     notifications = db.relationship('Notification', backref='user', lazy=True, order_by='Notification.created_at.desc()')
     
-    # Chat relationships
     chat_rooms_user1 = db.relationship('ChatRoom', foreign_keys='ChatRoom.user1_id', backref='user1_rel', lazy=True)
     chat_rooms_user2 = db.relationship('ChatRoom', foreign_keys='ChatRoom.user2_id', backref='user2_rel', lazy=True)
     chat_messages = db.relationship('ChatMessage', foreign_keys='ChatMessage.sender_id', backref='sender_rel', lazy=True)
@@ -73,7 +68,6 @@ class User(UserMixin, db.Model):
     
     def update_badge(self):
         """Update user badge based on rating only"""
-        # Update badge based on rating only
         if self.total_rating >= 4.5:
             self.badge = 'gold'
         elif self.total_rating >= 4.0:
@@ -121,7 +115,6 @@ class User(UserMixin, db.Model):
     def get_or_create_chat_room(self, other_user_id):
         """Get existing chat room or create new one with another user"""
         from models.chat import ChatRoom
-        # Check if chat room already exists
         existing_room = ChatRoom.query.filter(
             db.or_(
                 db.and_(ChatRoom.user1_id == self.id, ChatRoom.user2_id == other_user_id),
@@ -132,7 +125,6 @@ class User(UserMixin, db.Model):
         if existing_room:
             return existing_room
         
-        # Create new chat room
         new_room = ChatRoom(user1_id=self.id, user2_id=other_user_id)
         db.session.add(new_room)
         db.session.commit()
@@ -171,7 +163,6 @@ class User(UserMixin, db.Model):
         """Set availability for a specific day and time"""
         from models.availability import Availability
         
-        # Check if availability already exists for this day
         existing = Availability.query.filter_by(
             user_id=self.id, 
             day_of_week=day_of_week
@@ -207,9 +198,7 @@ class User(UserMixin, db.Model):
         if not availability:
             return False
         
-        # Check if the time slot overlaps with availability
         if isinstance(time_slot, str):
-            # Parse time string (e.g., "14:30")
             hour, minute = map(int, time_slot.split(':'))
             time_slot = time(hour, minute)
         

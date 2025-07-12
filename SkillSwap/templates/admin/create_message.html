@@ -1,7 +1,5 @@
 {% extends "base.html" %}
-
 {% block title %}Create Platform Message - Skillify Admin{% endblock %}
-
 {% block content %}
 <div class="row">
     <div class="col-12">
@@ -15,7 +13,6 @@
         </div>
     </div>
 </div>
-
 <div class="row">
     <div class="col-md-8 mx-auto">
         <div class="card">
@@ -71,8 +68,6 @@
         </div>
     </div>
 </div>
-
-<!-- Message Type Preview -->
 <div class="row mt-4">
     <div class="col-md-8 mx-auto">
         <div class="card">
@@ -92,7 +87,6 @@
     </div>
 </div>
 {% endblock %}
-
 {% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -112,7 +106,6 @@ document.addEventListener('DOMContentLoaded', function() {
             previewTitle.textContent = title || 'Message Title';
             previewContent.textContent = message || 'Message content will appear here...';
             
-            // Update alert class based on message type
             preview.className = 'alert';
             switch(messageType) {
                 case 'warning':

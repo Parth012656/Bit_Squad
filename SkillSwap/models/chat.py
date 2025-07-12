@@ -1,6 +1,5 @@
 from extensions import db
 from datetime import datetime
-
 class ChatRoom(db.Model):
     __tablename__ = 'chat_rooms'
     
@@ -10,7 +9,6 @@ class ChatRoom(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     last_message_at = db.Column(db.DateTime, default=datetime.utcnow)
     
-    # Relationships
     messages = db.relationship('ChatMessage', backref='chat_room', lazy=True, order_by='ChatMessage.created_at')
     user1 = db.relationship('User', foreign_keys=[user1_id])
     user2 = db.relationship('User', foreign_keys=[user2_id])
@@ -26,7 +24,6 @@ class ChatRoom(db.Model):
             sender_id=user_id,
             is_read=False
         ).count()
-
 class ChatMessage(db.Model):
     __tablename__ = 'chat_messages'
     
@@ -37,7 +34,6 @@ class ChatMessage(db.Model):
     is_read = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
-    # Relationships
     sender = db.relationship('User', foreign_keys=[sender_id])
     
     def __repr__(self):

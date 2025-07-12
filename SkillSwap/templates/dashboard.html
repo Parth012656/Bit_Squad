@@ -1,10 +1,8 @@
 {% extends "base.html" %}
-
 {% block title %}Dashboard - SkillSwap{% endblock %}
-
 {% block content %}
 <div class="row">
-    <!-- User Profile Section -->
+    
     <div class="col-md-4">
         <div class="card shadow mb-4">
             <div class="card-header bg-primary text-white">
@@ -53,8 +51,7 @@
             </div>
         </div>
     </div>
-
-    <!-- Tabs Section -->
+    
     <div class="col-md-8">
         <ul class="nav nav-tabs mb-3" id="dashboardTabs" role="tablist">
             <li class="nav-item" role="presentation">
@@ -68,7 +65,7 @@
             </li>
         </ul>
         <div class="tab-content" id="dashboardTabsContent">
-            <!-- Skills Tab -->
+            
             <div class="tab-pane fade show active" id="skills" role="tabpanel">
                 <div class="card shadow mb-4">
                     <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
@@ -125,7 +122,7 @@
                     </div>
                 </div>
             </div>
-            <!-- Requests Tab -->
+            
             <div class="tab-pane fade" id="requests" role="tabpanel">
                 <div class="card shadow mb-4">
                     <div class="card-header bg-primary text-white">
@@ -157,7 +154,7 @@
                                         <td>
                                             {% if req.status == 'Pending' %}
                                                 {% if req.requesting_user_id == current_user.id %}
-                                                <!-- User is the one who received the request - can accept/reject -->
+                                                
                                                 <form action="{{ url_for('exchange_action', exchange_id=req.id) }}" method="post" class="d-inline">
                                                     <input type="hidden" name="action" value="accept">
                                                     <button type="submit" class="btn btn-success btn-sm">Accept</button>
@@ -167,7 +164,7 @@
                                                     <button type="submit" class="btn btn-danger btn-sm">Reject</button>
                                                 </form>
                                                 {% elif req.offering_user_id == current_user.id %}
-                                                <!-- User is the one who initiated the request - can cancel -->
+                                                
                                                 <form action="{{ url_for('exchange_action', exchange_id=req.id) }}" method="post" class="d-inline">
                                                     <input type="hidden" name="action" value="cancel">
                                                     <button type="submit" class="btn btn-warning btn-sm">Cancel</button>
@@ -203,7 +200,7 @@
                     </div>
                 </div>
             </div>
-            <!-- Feedback Tab -->
+            
             <div class="tab-pane fade" id="feedback" role="tabpanel">
                 <div class="card shadow mb-4">
                     <div class="card-header bg-primary text-white">
@@ -256,8 +253,7 @@
                 </div>
             </div>
         </div>
-
-        <!-- Add Skill Modal -->
+        
         <div class="modal fade" id="addSkillModal" tabindex="-1">
             <div class="modal-dialog">
                 <div class="modal-content">
@@ -319,8 +315,6 @@
         </div>
     </div>
 </div>
-
-<!-- Edit Skill Modal -->
 <div class="modal fade" id="editSkillModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -381,8 +375,6 @@
         </div>
     </div>
 </div>
-
-<!-- Feedback Modals -->
 {% for ex in completed_exchanges %}
 {% if not ex.rating or not ex.feedback %}
 <div class="modal fade" id="feedbackModal{{ ex.id }}" tabindex="-1">
@@ -424,10 +416,8 @@
 {% endif %}
 {% endfor %}
 {% endblock %}
-
 {% block scripts %}
 <script>
-// Add skill functionality
 function addSkill() {
     const form = document.getElementById('addSkillForm');
     const formData = {
@@ -436,7 +426,6 @@ function addSkill() {
         category: document.getElementById('skillCategory').value,
         level: document.getElementById('skillLevel').value
     };
-
     fetch('/api/skills', {
         method: 'POST',
         headers: {
@@ -454,8 +443,6 @@ function addSkill() {
         console.error('Error:', error);
     });
 }
-
-// Edit skill functionality
 function editSkill(skillId, skillName, skillDescription, skillCategory, skillLevel) {
     document.getElementById('editSkillId').value = skillId;
     document.getElementById('editSkillName').value = skillName;
@@ -466,8 +453,6 @@ function editSkill(skillId, skillName, skillDescription, skillCategory, skillLev
     const editModal = new bootstrap.Modal(document.getElementById('editSkillModal'));
     editModal.show();
 }
-
-// Update skill functionality
 function updateSkill() {
     const skillId = document.getElementById('editSkillId').value;
     const formData = {
@@ -476,7 +461,6 @@ function updateSkill() {
         category: document.getElementById('editSkillCategory').value,
         level: document.getElementById('editSkillLevel').value
     };
-
     fetch(`/api/skills/${skillId}`, {
         method: 'PUT',
         headers: {
@@ -494,8 +478,6 @@ function updateSkill() {
         console.error('Error:', error);
     });
 }
-
-// Add event listeners for edit buttons
 document.addEventListener('DOMContentLoaded', function() {
     const editButtons = document.querySelectorAll('.edit-skill-btn');
     editButtons.forEach(button => {

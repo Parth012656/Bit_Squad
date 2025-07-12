@@ -1,15 +1,10 @@
-#!/usr/bin/env python3
 """
 Test script to verify SkillSwap app is ready to use
 """
-
 import os
 import sys
 from dotenv import load_dotenv
-
-# Load environment variables
 load_dotenv()
-
 def test_imports():
     """Test if all required modules can be imported"""
     print("🔍 Testing imports...")
@@ -24,7 +19,6 @@ def test_imports():
     except ImportError as e:
         print(f"❌ Import error: {e}")
         return False
-
 def test_configuration():
     """Test if configuration is properly set up"""
     print("🔍 Testing configuration...")
@@ -33,7 +27,6 @@ def test_configuration():
         from config.database import config
         dev_config = config['development']
         
-        # Check if database URI is properly formatted
         db_uri = dev_config.SQLALCHEMY_DATABASE_URI
         if 'mysql://' in db_uri:
             print("✅ Database configuration looks good")
@@ -44,7 +37,6 @@ def test_configuration():
     except Exception as e:
         print(f"❌ Configuration error: {e}")
         return False
-
 def test_database_connection():
     """Test database connection"""
     print("🔍 Testing database connection...")
@@ -53,11 +45,9 @@ def test_database_connection():
         from app import create_app
         from flask_sqlalchemy import SQLAlchemy
         
-        # Create test app
         app = create_app('development')
         
         with app.app_context():
-            # Test connection
             from app import db
             with db.engine.connect() as conn:
                 conn.execute(db.text('SELECT 1'))
@@ -71,7 +61,6 @@ def test_database_connection():
         print("2. Create the user: skillswap_user")
         print("3. Run the database setup script")
         return False
-
 def test_models():
     """Test if models can be imported"""
     print("🔍 Testing models...")
@@ -89,7 +78,6 @@ def test_models():
     except Exception as e:
         print(f"❌ Model import error: {e}")
         return False
-
 def test_templates():
     """Test if templates exist"""
     print("🔍 Testing templates...")
@@ -115,7 +103,6 @@ def test_templates():
     else:
         print("✅ All templates exist")
         return True
-
 def test_static_files():
     """Test if static files exist"""
     print("🔍 Testing static files...")
@@ -136,7 +123,6 @@ def test_static_files():
     else:
         print("✅ All static files exist")
         return True
-
 def main():
     """Main test function"""
     print("🚀 SkillSwap App Readiness Test")
@@ -172,6 +158,5 @@ def main():
     else:
         print("❌ Some tests failed. Please fix the issues above.")
         sys.exit(1)
-
 if __name__ == '__main__':
     main() 

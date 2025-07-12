@@ -1,35 +1,27 @@
-/* Custom styles for Skillify */
-
-/* Modern color scheme - Clean and Professional */
 :root {
-    --primary-color: #4F46E5;      /* Indigo */
-    --secondary-color: #7C3AED;    /* Purple */
-    --accent-color: #06B6D4;       /* Cyan */
-    --success-color: #10B981;      /* Emerald */
-    --warning-color: #F59E0B;      /* Amber */
-    --danger-color: #EF4444;       /* Red */
-    --dark-color: #1F2937;         /* Gray 800 */
-    --light-color: #F9FAFB;        /* Gray 50 */
-    --text-primary: #111827;       /* Gray 900 */
-    --text-secondary: #6B7280;     /* Gray 500 */
-    --border-color: #E5E7EB;       /* Gray 200 */
-    --bronze-color: #CD7F32;       /* Bronze for badges */
+    --primary-color: #4F46E5;      
+    --secondary-color: #7C3AED;    
+    --accent-color: #06B6D4;       
+    --success-color: #10B981;      
+    --warning-color: #F59E0B;      
+    --danger-color: #EF4444;       
+    --dark-color: #1F2937;         
+    --light-color: #F9FAFB;        
+    --text-primary: #111827;       
+    --text-secondary: #6B7280;     
+    --border-color: #E5E7EB;       
+    --bronze-color: #CD7F32;       
 }
-
-/* Bronze badge styling - only this needs to be brown */
 .badge.bg-danger {
-    background-color: var(--bronze-color) !important; /* Bronze color */
+    background-color: var(--bronze-color) !important; 
     color: #fff !important;
 }
-
-/* Enhanced button visibility */
 .btn-primary {
     background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
     border-color: var(--primary-color);
     color: #fff;
     text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
 }
-
 .btn-primary:hover {
     background: linear-gradient(135deg, var(--secondary-color) 0%, var(--primary-color) 100%);
     border-color: var(--secondary-color);
@@ -37,20 +29,16 @@
     transform: translateY(-1px);
     box-shadow: 0 4px 8px rgba(0,0,0,0.2);
 }
-
-/* Enhanced card visibility */
 .card {
     border: 2px solid var(--border-color);
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     transition: all 0.3s ease;
     border-radius: 12px;
 }
-
 .card:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 12px rgba(0,0,0,0.15);
 }
-
 .card-header {
     background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
     color: #fff;
@@ -58,19 +46,14 @@
     text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
     border-radius: 10px 10px 0 0 !important;
 }
-
-/* Enhanced text visibility */
 .text-muted {
     color: var(--text-secondary) !important;
     font-weight: 500;
 }
-
 .text-primary {
     color: var(--primary-color) !important;
     font-weight: 600;
 }
-
-/* Enhanced form elements */
 .form-control {
     border: 2px solid var(--border-color);
     border-radius: 8px;
@@ -78,74 +61,58 @@
     font-size: 16px;
     transition: all 0.3s ease;
 }
-
 .form-control:focus {
     border-color: var(--primary-color);
     box-shadow: 0 0 0 0.2rem rgba(79, 70, 229, 0.25);
 }
-
-/* Enhanced navbar */
 .navbar-dark {
     background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%) !important;
 }
-
 .navbar-dark .navbar-nav .nav-link {
     color: #fff !important;
     font-weight: 500;
     text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
     transition: all 0.3s ease;
 }
-
 .navbar-dark .navbar-nav .nav-link:hover {
     color: var(--accent-color) !important;
     transform: translateY(-1px);
 }
-
-/* Enhanced badges */
 .badge {
     font-weight: 600;
     padding: 6px 10px;
     border-radius: 12px;
 }
-
-/* Enhanced alerts */
 .alert {
     border: 2px solid;
     border-radius: 8px;
     font-weight: 500;
 }
-
 .alert-info {
     background: linear-gradient(135deg, #DBEAFE 0%, #BFDBFE 100%);
     border-color: var(--accent-color);
     color: #1E40AF;
 }
-
 .alert-success {
     background: linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%);
     border-color: var(--success-color);
     color: #065F46;
 }
-
 .alert-warning {
     background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
     border-color: var(--warning-color);
     color: #92400E;
 }
-
 .alert-danger {
     background: linear-gradient(135deg, #FEE2E2 0%, #FECACA 100%);
     border-color: var(--danger-color);
     color: #991B1B;
 }
-
-/* Enhanced tables */
 .table {
     border: 2px solid var(--border-color);
     border-radius: 8px;
     overflow: hidden;
 }
-
 .table thead th {
     background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
     color: #fff;
@@ -153,105 +120,79 @@
     text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
     border: none;
 }
-
-/* Enhanced pagination */
 .pagination .page-link {
     color: var(--primary-color);
     border-color: var(--border-color);
     font-weight: 500;
 }
-
 .pagination .page-item.active .page-link {
     background-color: var(--primary-color);
     border-color: var(--primary-color);
     color: #fff;
 }
-
-/* Enhanced dropdowns */
 .dropdown-menu {
     border: 2px solid var(--border-color);
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }
-
 .dropdown-item:hover {
     background-color: var(--light-color);
     color: var(--primary-color);
 }
-
-/* Enhanced modals */
 .modal-header {
     background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
     color: #fff;
     font-weight: bold;
     text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
 }
-
-/* Enhanced progress bars */
 .progress {
     height: 20px;
     border-radius: 10px;
     border: 2px solid var(--border-color);
 }
-
 .progress-bar {
     background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
     font-weight: bold;
     text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
 }
-
-/* Enhanced list groups */
 .list-group-item {
     border: 2px solid var(--border-color);
     font-weight: 500;
 }
-
 .list-group-item.active {
     background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
     border-color: var(--primary-color);
     color: #fff;
     text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
 }
-
-/* Enhanced tooltips */
 .tooltip .tooltip-inner {
     background-color: var(--dark-color);
     color: #fff;
     font-weight: 500;
 }
-
-/* Enhanced popovers */
 .popover {
     border: 2px solid var(--border-color);
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }
-
 .popover-header {
     background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
     color: #fff;
     font-weight: bold;
     text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
 }
-
-/* Enhanced avatars */
 .avatar-placeholder {
     background: linear-gradient(135deg, var(--light-color) 0%, #E5E7EB 100%) !important;
     color: var(--primary-color) !important;
     font-weight: bold;
 }
-
-/* Enhanced skill cards */
 .skill-card .card {
     transition: all 0.3s ease;
 }
-
 .skill-card .card:hover {
     transform: translateY(-5px);
     box-shadow: 0 8px 16px rgba(0,0,0,0.2);
 }
-
-/* Enhanced availability display */
 .availability-item {
     background: linear-gradient(135deg, var(--light-color) 0%, #E5E7EB 100%);
     border: 2px solid var(--border-color);
@@ -260,13 +201,10 @@
     margin-bottom: 10px;
     transition: all 0.3s ease;
 }
-
 .availability-item:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }
-
-/* Enhanced schedule form */
 .schedule-form .form-control {
     border: 2px solid var(--border-color);
     border-radius: 8px;
@@ -274,27 +212,21 @@
     font-size: 16px;
     font-weight: 500;
 }
-
 .schedule-form .form-control:focus {
     border-color: var(--primary-color);
     box-shadow: 0 0 0 0.2rem rgba(79, 70, 229, 0.25);
 }
-
-/* Enhanced notification badges */
 .badge.bg-danger {
     background-color: var(--danger-color) !important;
     color: #fff !important;
     font-weight: bold;
     animation: pulse 2s infinite;
 }
-
 @keyframes pulse {
     0% { transform: scale(1); }
     50% { transform: scale(1.1); }
     100% { transform: scale(1); }
 }
-
-/* Enhanced admin panel */
 .admin-card {
     background: linear-gradient(135deg, var(--light-color) 0%, #E5E7EB 100%);
     border: 2px solid var(--border-color);
@@ -303,13 +235,10 @@
     margin-bottom: 20px;
     transition: all 0.3s ease;
 }
-
 .admin-card:hover {
     transform: translateY(-3px);
     box-shadow: 0 6px 12px rgba(0,0,0,0.15);
 }
-
-/* Enhanced chat interface */
 .chat-message {
     background: linear-gradient(135deg, var(--light-color) 0%, #E5E7EB 100%);
     border: 2px solid var(--border-color);
@@ -318,13 +247,10 @@
     margin-bottom: 10px;
     transition: all 0.3s ease;
 }
-
 .chat-message:hover {
     transform: translateY(-1px);
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
-
-/* Enhanced leaderboard */
 .leaderboard-item {
     background: linear-gradient(135deg, var(--light-color) 0%, #E5E7EB 100%);
     border: 2px solid var(--border-color);
@@ -333,13 +259,10 @@
     margin-bottom: 10px;
     transition: all 0.3s ease;
 }
-
 .leaderboard-item:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }
-
-/* Enhanced profile section */
 .profile-section {
     background: linear-gradient(135deg, var(--light-color) 0%, #E5E7EB 100%);
     border: 2px solid var(--border-color);
@@ -347,8 +270,6 @@
     padding: 20px;
     margin-bottom: 20px;
 }
-
-/* Enhanced skill form */
 .skill-form {
     background: linear-gradient(135deg, var(--light-color) 0%, #E5E7EB 100%);
     border: 2px solid var(--border-color);
@@ -356,8 +277,6 @@
     padding: 25px;
     margin-bottom: 20px;
 }
-
-/* Enhanced exchange cards */
 .exchange-card {
     background: linear-gradient(135deg, var(--light-color) 0%, #E5E7EB 100%);
     border: 2px solid var(--border-color);
@@ -366,13 +285,10 @@
     margin-bottom: 15px;
     transition: all 0.3s ease;
 }
-
 .exchange-card:hover {
     transform: translateY(-3px);
     box-shadow: 0 6px 12px rgba(0,0,0,0.15);
 }
-
-/* Enhanced notification system */
 .notification-item {
     background: linear-gradient(135deg, var(--light-color) 0%, #E5E7EB 100%);
     border: 2px solid var(--border-color);
@@ -381,13 +297,10 @@
     margin-bottom: 10px;
     transition: all 0.3s ease;
 }
-
 .notification-item:hover {
     transform: translateY(-1px);
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
-
-/* Enhanced report system */
 .report-card {
     background: linear-gradient(135deg, var(--light-color) 0%, #E5E7EB 100%);
     border: 2px solid var(--border-color);
@@ -396,13 +309,10 @@
     margin-bottom: 15px;
     transition: all 0.3s ease;
 }
-
 .report-card:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }
-
-/* Enhanced analytics */
 .analytics-card {
     background: linear-gradient(135deg, var(--light-color) 0%, #E5E7EB 100%);
     border: 2px solid var(--border-color);
@@ -411,13 +321,10 @@
     margin-bottom: 20px;
     transition: all 0.3s ease;
 }
-
 .analytics-card:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }
-
-/* Enhanced message system */
 .message-card {
     background: linear-gradient(135deg, var(--light-color) 0%, #E5E7EB 100%);
     border: 2px solid var(--border-color);
@@ -426,13 +333,10 @@
     margin-bottom: 15px;
     transition: all 0.3s ease;
 }
-
 .message-card:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }
-
-/* Enhanced availability management */
 .availability-form {
     background: linear-gradient(135deg, var(--light-color) 0%, #E5E7EB 100%);
     border: 2px solid var(--border-color);
@@ -440,8 +344,6 @@
     padding: 25px;
     margin-bottom: 20px;
 }
-
-/* Enhanced schedule management */
 .schedule-form {
     background: linear-gradient(135deg, var(--light-color) 0%, #E5E7EB 100%);
     border: 2px solid var(--border-color);
@@ -449,8 +351,6 @@
     padding: 25px;
     margin-bottom: 20px;
 }
-
-/* Enhanced overall visibility */
 body {
     background-color: var(--light-color);
     color: var(--text-primary);
@@ -459,15 +359,11 @@ body {
     display: flex;
     flex-direction: column;
 }
-
-/* Ensure footer stays at bottom */
 main {
     flex: 1;
     display: flex;
     flex-direction: column;
 }
-
-/* Add spacing for short pages */
 .content-wrapper {
     flex: 1;
     display: flex;
@@ -475,26 +371,20 @@ main {
     justify-content: center;
     min-height: 60vh;
 }
-
 h1, h2, h3, h4, h5, h6 {
     color: var(--text-primary);
     font-weight: bold;
     text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
 }
-
-/* Enhanced link visibility */
 a {
     color: var(--primary-color);
     font-weight: 500;
     text-decoration: none;
 }
-
 a:hover {
     color: var(--secondary-color);
     text-decoration: underline;
 }
-
-/* Enhanced button visibility */
 .btn {
     font-weight: 600;
     text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
@@ -502,56 +392,38 @@ a:hover {
     padding: 10px 20px;
     transition: all 0.3s ease;
 }
-
 .btn:hover {
     transform: translateY(-1px);
     box-shadow: 0 4px 8px rgba(0,0,0,0.2);
 }
-
-/* Enhanced input visibility */
 input, select, textarea {
     font-weight: 500;
     color: var(--text-primary);
 }
-
-/* Enhanced label visibility */
 label {
     font-weight: 600;
     color: var(--text-primary);
 }
-
-/* Enhanced text visibility */
 p, span, div {
     color: var(--text-primary);
     font-weight: 500;
 }
-
-/* Enhanced icon visibility */
 .fas, .far, .fab {
     color: var(--primary-color);
 }
-
-/* Footer styling */
 footer {
     background: linear-gradient(135deg, var(--dark-color) 0%, #374151 100%) !important;
 }
-
-/* Navbar styling */
 .navbar-brand {
     color: #fff !important;
     text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
 }
-
-/* Card header styling */
 .card-header.bg-primary {
     background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%) !important;
 }
-
-/* Golden stars for ratings */
 .text-warning .fas.fa-star {
     color: #FFD700 !important;
 }
-
 .text-warning .fas.fa-star-o {
     color: #FFD700 !important;
     opacity: 0.3;

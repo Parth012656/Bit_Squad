@@ -1,7 +1,5 @@
 {% extends "base.html" %}
-
 {% block title %}Reports Management - Skillify Admin{% endblock %}
-
 {% block content %}
 <div class="row">
     <div class="col-12">
@@ -20,7 +18,6 @@
         </div>
     </div>
 </div>
-
 <div class="row">
     <div class="col-12">
         <div class="card">
@@ -83,7 +80,7 @@
                     </table>
                 </div>
                 
-                <!-- Pagination -->
+                
                 {% if reports.pages > 1 %}
                 <nav aria-label="Reports pagination">
                     <ul class="pagination justify-content-center">
@@ -130,8 +127,6 @@
         </div>
     </div>
 </div>
-
-<!-- Resolve Report Modals -->
 {% for report in reports.items %}
 {% if report.status == 'pending' %}
 <div class="modal fade" id="resolveModal{{ report.id }}" tabindex="-1">
