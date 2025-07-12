@@ -1,218 +1,501 @@
-/* Custom styles for SkillSwap */
+/* Custom styles for Skillify */
 
-/* Hero Section */
-.hero-section {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    padding: 80px 0;
+/* Bronze badge styling - only this needs to be brown */
+.badge.bg-danger {
+    background-color: #CD7F32 !important; /* Bronze color */
+    color: #fff !important;
 }
 
-.hero-section h1 {
-    font-weight: 700;
-    margin-bottom: 20px;
+/* Original subtle theme */
+:root {
+    --primary-blue: #667eea;
+    --secondary-purple: #764ba2;
+    --light-gray: #f8f9fa;
+    --dark-gray: #343a40;
 }
 
-/* Feature Icons */
-.feature-icon {
-    color: #007bff;
-}
-
-/* Step Numbers */
-.step-number .badge {
-    width: 60px;
-    height: 60px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.2rem;
-    font-weight: bold;
-}
-
-/* Cards */
-.card {
-    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-}
-
-.card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important;
-}
-
-/* Skill Cards */
-.skill-card .card {
-    border: none;
-    border-radius: 12px;
-}
-
-.skill-card .card-body {
-    padding: 1.5rem;
-}
-
-/* Avatar Placeholder */
-.avatar-placeholder {
-    background: linear-gradient(45deg, #f8f9fa, #e9ecef);
-    border: 2px solid #dee2e6;
-}
-
-/* Navigation */
-.navbar-brand {
-    font-weight: 700;
-    font-size: 1.5rem;
-}
-
-/* Buttons */
-.btn {
-    border-radius: 8px;
-    font-weight: 500;
-}
-
+/* Enhanced button visibility */
 .btn-primary {
-    background: linear-gradient(45deg, #007bff, #0056b3);
-    border: none;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-color: #667eea;
+    color: #fff;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
 }
 
 .btn-primary:hover {
-    background: linear-gradient(45deg, #0056b3, #004085);
+    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+    border-color: #764ba2;
+    color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+/* Enhanced card visibility */
+.card {
+    border: 2px solid #e0e0e0;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+}
+
+.card-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+}
+
+/* Enhanced text visibility */
+.text-muted {
+    color: #555 !important;
+    font-weight: 500;
+}
+
+.text-primary {
+    color: #667eea !important;
+    font-weight: 600;
+}
+
+/* Enhanced form elements */
+.form-control {
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 16px;
+}
+
+.form-control:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+/* Enhanced navbar */
+.navbar-dark .navbar-nav .nav-link {
+    color: #fff !important;
+    font-weight: 500;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+}
+
+.navbar-dark .navbar-nav .nav-link:hover {
+    color: #FFD700 !important;
     transform: translateY(-1px);
 }
 
-/* Forms */
-.form-control, .form-select {
-    border-radius: 8px;
-    border: 2px solid #e9ecef;
-    transition: border-color 0.2s ease-in-out;
-}
-
-.form-control:focus, .form-select:focus {
-    border-color: #007bff;
-    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
-}
-
-/* Modal */
-.modal-content {
+/* Enhanced badges */
+.badge {
+    font-weight: 600;
+    padding: 6px 10px;
     border-radius: 12px;
+}
+
+/* Enhanced alerts */
+.alert {
+    border: 2px solid;
+    border-radius: 8px;
+    font-weight: 500;
+}
+
+.alert-info {
+    background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%);
+    border-color: #17a2b8;
+    color: #0c5460;
+}
+
+/* Enhanced tables */
+.table {
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.table thead th {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
     border: none;
 }
 
-.modal-header {
-    border-bottom: 1px solid #e9ecef;
-    background: linear-gradient(45deg, #007bff, #0056b3);
-    color: white;
-    border-radius: 12px 12px 0 0;
-}
-
-/* Badges */
-.badge {
+/* Enhanced pagination */
+.pagination .page-link {
+    color: #667eea;
+    border-color: #dee2e6;
     font-weight: 500;
-    padding: 0.5em 0.75em;
 }
 
-/* Footer */
-footer {
-    margin-top: auto;
+.pagination .page-item.active .page-link {
+    background-color: #667eea;
+    border-color: #667eea;
+    color: #fff;
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
-    .hero-section {
-        padding: 60px 0;
-    }
-    
-    .hero-section h1 {
-        font-size: 2.5rem;
-    }
-    
-    .step-number .badge {
-        width: 50px;
-        height: 50px;
-        font-size: 1rem;
-    }
+/* Enhanced dropdowns */
+.dropdown-menu {
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }
 
-/* Loading Animation */
-.loading {
-    display: inline-block;
-    width: 20px;
+.dropdown-item:hover {
+    background-color: #f8f9fa;
+    color: #667eea;
+}
+
+/* Enhanced modals */
+.modal-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+}
+
+/* Enhanced progress bars */
+.progress {
     height: 20px;
-    border: 3px solid rgba(255,255,255,.3);
-    border-radius: 50%;
-    border-top-color: #fff;
-    animation: spin 1s ease-in-out infinite;
+    border-radius: 10px;
+    border: 2px solid #dee2e6;
 }
 
-@keyframes spin {
-    to { transform: rotate(360deg); }
+.progress-bar {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
 }
 
-/* Skill Exchange Animation */
-.exchange-animation {
+/* Enhanced list groups */
+.list-group-item {
+    border: 2px solid #dee2e6;
+    font-weight: 500;
+}
+
+.list-group-item.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-color: #667eea;
+    color: #fff;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+}
+
+/* Enhanced tooltips */
+.tooltip .tooltip-inner {
+    background-color: #343a40;
+    color: #fff;
+    font-weight: 500;
+}
+
+/* Enhanced popovers */
+.popover {
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.popover-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+}
+
+/* Enhanced avatars */
+.avatar-placeholder {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
+    color: #667eea !important;
+    font-weight: bold;
+}
+
+/* Enhanced skill cards */
+.skill-card .card {
+    transition: all 0.3s ease;
+}
+
+.skill-card .card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+}
+
+/* Enhanced availability display */
+.availability-item {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 10px;
+    transition: all 0.3s ease;
+}
+
+.availability-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* Enhanced schedule form */
+.schedule-form .form-control {
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.schedule-form .form-control:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+/* Enhanced notification badges */
+.badge.bg-danger {
+    background-color: #dc3545 !important;
+    color: #fff !important;
+    font-weight: bold;
     animation: pulse 2s infinite;
 }
 
 @keyframes pulse {
-    0% {
-        transform: scale(1);
-    }
-    50% {
-        transform: scale(1.05);
-    }
-    100% {
-        transform: scale(1);
-    }
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
 }
 
-/* Custom Scrollbar */
-::-webkit-scrollbar {
-    width: 8px;
-}
-
-::-webkit-scrollbar-track {
-    background: #f1f1f1;
-}
-
-::-webkit-scrollbar-thumb {
-    background: #007bff;
-    border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: #0056b3;
-}
-
-/* Utility Classes */
-.text-gradient {
-    background: linear-gradient(45deg, #007bff, #0056b3);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
-.shadow-custom {
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.border-radius-custom {
+/* Enhanced admin panel */
+.admin-card {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border: 2px solid #dee2e6;
     border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    transition: all 0.3s ease;
 }
 
-/* Hover Effects */
-.hover-lift {
-    transition: transform 0.2s ease-in-out;
-}
-
-.hover-lift:hover {
+.admin-card:hover {
     transform: translateY(-3px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
 }
 
-/* Focus States */
-.btn:focus, .form-control:focus, .form-select:focus {
-    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+/* Enhanced chat interface */
+.chat-message {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border: 2px solid #dee2e6;
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 10px;
+    transition: all 0.3s ease;
 }
 
-/* Accessibility */
-@media (prefers-reduced-motion: reduce) {
-    .card, .btn, .loading {
-        animation: none;
-        transition: none;
-    }
+.chat-message:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Enhanced leaderboard */
+.leaderboard-item {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 10px;
+    transition: all 0.3s ease;
+}
+
+.leaderboard-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* Enhanced profile section */
+.profile-section {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border: 2px solid #dee2e6;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+/* Enhanced skill form */
+.skill-form {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border: 2px solid #dee2e6;
+    border-radius: 12px;
+    padding: 25px;
+    margin-bottom: 20px;
+}
+
+/* Enhanced exchange cards */
+.exchange-card {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border: 2px solid #dee2e6;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 15px;
+    transition: all 0.3s ease;
+}
+
+.exchange-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+}
+
+/* Enhanced notification system */
+.notification-item {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 10px;
+    transition: all 0.3s ease;
+}
+
+.notification-item:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Enhanced report system */
+.report-card {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border: 2px solid #dee2e6;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 15px;
+    transition: all 0.3s ease;
+}
+
+.report-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* Enhanced analytics */
+.analytics-card {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border: 2px solid #dee2e6;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    transition: all 0.3s ease;
+}
+
+.analytics-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* Enhanced message system */
+.message-card {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border: 2px solid #dee2e6;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 15px;
+    transition: all 0.3s ease;
+}
+
+.message-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* Enhanced availability management */
+.availability-form {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border: 2px solid #dee2e6;
+    border-radius: 12px;
+    padding: 25px;
+    margin-bottom: 20px;
+}
+
+/* Enhanced schedule management */
+.schedule-form {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border: 2px solid #dee2e6;
+    border-radius: 12px;
+    padding: 25px;
+    margin-bottom: 20px;
+}
+
+/* Enhanced overall visibility */
+body {
+    background-color: #f8f9fa;
+    color: #333;
+    font-weight: 500;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    color: #343a40;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+}
+
+/* Enhanced link visibility */
+a {
+    color: #667eea;
+    font-weight: 500;
+    text-decoration: none;
+}
+
+a:hover {
+    color: #764ba2;
+    text-decoration: underline;
+}
+
+/* Enhanced button visibility */
+.btn {
+    font-weight: 600;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+    border-radius: 8px;
+    padding: 10px 20px;
+    transition: all 0.3s ease;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+/* Enhanced input visibility */
+input, select, textarea {
+    font-weight: 500;
+    color: #333;
+}
+
+/* Enhanced label visibility */
+label {
+    font-weight: 600;
+    color: #343a40;
+}
+
+/* Enhanced text visibility */
+p, span, div {
+    color: #333;
+    font-weight: 500;
+}
+
+/* Enhanced icon visibility */
+.fas, .far, .fab {
+    color: #667eea;
+}
+
+/* Enhanced success/error messages */
+.alert-success {
+    background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+    border-color: #28a745;
+    color: #155724;
+    font-weight: 600;
+}
+
+.alert-danger {
+    background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+    border-color: #dc3545;
+    color: #721c24;
+    font-weight: 600;
+}
+
+.alert-warning {
+    background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+    border-color: #ffc107;
+    color: #856404;
+    font-weight: 600;
 } 
