@@ -3,38 +3,52 @@
 {% block title %}Skillify - Connect, Learn, Grow{% endblock %}
 
 {% block content %}
-<!-- Hero Section -->
+
+<!-- ============================== -->
+<!-- Hero Section: Main landing area with intro text and primary CTAs -->
+<!-- ============================== -->
 <div class="hero-section text-center py-5">
     <div class="container">
+        <!-- Platform title with icon and styling -->
         <h1 class="display-4 fw-bold mb-4" style="color: #2c3e50 !important; text-shadow: 2px 2px 4px rgba(0,0,0,0.1);">
             <i class="fas fa-exchange-alt me-3"></i>Skillify
         </h1>
+        
+        <!-- Brief description of what the platform is about -->
         <p class="lead mb-4">Connect with others, share your skills, and learn something new. The platform where knowledge meets opportunity.</p>
+
+        <!-- Conditional buttons based on login status -->
         <div class="d-flex justify-content-center gap-3">
             {% if not current_user.is_authenticated %}
-            <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg">
-                <i class="fas fa-user-plus me-2"></i>Get Started
-            </a>
-            <a href="{{ url_for('skills') }}" class="btn btn-outline-primary btn-lg">
-                <i class="fas fa-search me-2"></i>Browse Skills
-            </a>
+                <!-- For new visitors: prompt to register or browse skills -->
+                <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-user-plus me-2"></i>Get Started
+                </a>
+                <a href="{{ url_for('skills') }}" class="btn btn-outline-primary btn-lg">
+                    <i class="fas fa-search me-2"></i>Browse Skills
+                </a>
             {% else %}
-            <a href="{{ url_for('dashboard') }}" class="btn btn-primary btn-lg">
-                <i class="fas fa-tachometer-alt me-2"></i>My Dashboard
-            </a>
-            <a href="{{ url_for('skills') }}" class="btn btn-outline-primary btn-lg">
-                <i class="fas fa-search me-2"></i>Browse Skills
-            </a>
+                <!-- For logged-in users: go to dashboard or explore more skills -->
+                <a href="{{ url_for('dashboard') }}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-tachometer-alt me-2"></i>My Dashboard
+                </a>
+                <a href="{{ url_for('skills') }}" class="btn btn-outline-primary btn-lg">
+                    <i class="fas fa-search me-2"></i>Browse Skills
+                </a>
             {% endif %}
         </div>
     </div>
 </div>
 
-<!-- Features Section -->
+<!-- ============================== -->
+<!-- Features Section: Highlight the platform's core benefits -->
+<!-- ============================== -->
 <div class="features-section py-5 bg-light">
     <div class="container">
         <h2 class="text-center mb-5">Why Choose Skillify?</h2>
         <div class="row g-4">
+
+            <!-- Feature 1: Community and connection -->
             <div class="col-md-4">
                 <div class="card h-100 border-0 shadow-sm">
                     <div class="card-body text-center">
@@ -46,6 +60,8 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Feature 2: Learning opportunities -->
             <div class="col-md-4">
                 <div class="card h-100 border-0 shadow-sm">
                     <div class="card-body text-center">
@@ -57,6 +73,8 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Feature 3: Skill-based exchange model -->
             <div class="col-md-4">
                 <div class="card h-100 border-0 shadow-sm">
                     <div class="card-body text-center">
@@ -68,15 +86,20 @@
                     </div>
                 </div>
             </div>
+
         </div>
     </div>
 </div>
 
-<!-- How It Works Section -->
+<!-- ============================== -->
+<!-- How It Works Section: Step-by-step breakdown of using Skillify -->
+<!-- ============================== -->
 <div class="how-it-works py-5">
     <div class="container">
         <h2 class="text-center mb-5">How It Works</h2>
         <div class="row g-4">
+
+            <!-- Step 1: User creates their profile -->
             <div class="col-md-3">
                 <div class="text-center">
                     <div class="step-number mb-3">
@@ -86,6 +109,8 @@
                     <p>Sign up and tell us about your skills and what you'd like to learn.</p>
                 </div>
             </div>
+
+            <!-- Step 2: Explore community skills -->
             <div class="col-md-3">
                 <div class="text-center">
                     <div class="step-number mb-3">
@@ -95,6 +120,8 @@
                     <p>Explore the skills available in our community and find what interests you.</p>
                 </div>
             </div>
+
+            <!-- Step 3: Initiate a skill exchange -->
             <div class="col-md-3">
                 <div class="text-center">
                     <div class="step-number mb-3">
@@ -104,6 +131,8 @@
                     <p>Propose a skill exchange with someone who has what you need.</p>
                 </div>
             </div>
+
+            <!-- Step 4: Learn and build relationships -->
             <div class="col-md-3">
                 <div class="text-center">
                     <div class="step-number mb-3">
@@ -113,24 +142,30 @@
                     <p>Meet up and exchange knowledge, building connections and skills.</p>
                 </div>
             </div>
+
         </div>
     </div>
 </div>
 
-<!-- Call to Action -->
-        <div class="cta-section py-5 text-white" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+<!-- ============================== -->
+<!-- Call to Action: Encourage users to join or engage -->
+<!-- ============================== -->
+<div class="cta-section py-5 text-white" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
     <div class="container text-center">
         <h2 class="mb-4">Ready to Start Your Skill Exchange Journey?</h2>
         <p class="lead mb-4">Join thousands of learners and teachers in our growing community.</p>
+
+        <!-- CTA button changes based on user login status -->
         {% if not current_user.is_authenticated %}
-        <a href="{{ url_for('register') }}" class="btn btn-light btn-lg">
-            <i class="fas fa-rocket me-2"></i>Join Skillify Today
-        </a>
+            <a href="{{ url_for('register') }}" class="btn btn-light btn-lg">
+                <i class="fas fa-rocket me-2"></i>Join Skillify Today
+            </a>
         {% else %}
-        <a href="{{ url_for('skills') }}" class="btn btn-light btn-lg">
-            <i class="fas fa-search me-2"></i>Browse Available Skills
-        </a>
+            <a href="{{ url_for('skills') }}" class="btn btn-light btn-lg">
+                <i class="fas fa-search me-2"></i>Browse Available Skills
+            </a>
         {% endif %}
     </div>
 </div>
-{% endblock %} 
+
+{% endblock %}
