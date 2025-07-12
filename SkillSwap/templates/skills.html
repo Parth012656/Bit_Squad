@@ -1,13 +1,13 @@
 {% extends "base.html" %}
 
-{% block title %}Browse Skills - SkillSwap{% endblock %}
+{% block title %}Browse Skills - Skillify{% endblock %}
 
 {% block content %}
 <div class="row">
     <!-- Filters Sidebar -->
     <div class="col-md-3">
         <div class="card shadow">
-            <div class="card-header bg-primary text-white">
+            <div class="card-header text-white" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
                 <h5 class="mb-0">
                     <i class="fas fa-filter me-2"></i>Filters
                 </h5>
@@ -17,28 +17,28 @@
                     <label for="categoryFilter" class="form-label">Category</label>
                     <select class="form-select" id="categoryFilter">
                         <option value="">All Categories</option>
-                        <option value="Technology">Technology</option>
-                        <option value="Language">Language</option>
-                        <option value="Arts">Arts</option>
-                        <option value="Sports">Sports</option>
-                        <option value="Cooking">Cooking</option>
-                        <option value="Music">Music</option>
-                        <option value="Other">Other</option>
+                        <option value="Technology" {{ 'selected' if current_category == 'Technology' else '' }}>Technology</option>
+                        <option value="Language" {{ 'selected' if current_category == 'Language' else '' }}>Language</option>
+                        <option value="Arts" {{ 'selected' if current_category == 'Arts' else '' }}>Arts</option>
+                        <option value="Sports" {{ 'selected' if current_category == 'Sports' else '' }}>Sports</option>
+                        <option value="Cooking" {{ 'selected' if current_category == 'Cooking' else '' }}>Cooking</option>
+                        <option value="Music" {{ 'selected' if current_category == 'Music' else '' }}>Music</option>
+                        <option value="Other" {{ 'selected' if current_category == 'Other' else '' }}>Other</option>
                     </select>
                 </div>
                 <div class="mb-3">
                     <label for="levelFilter" class="form-label">Level</label>
                     <select class="form-select" id="levelFilter">
                         <option value="">All Levels</option>
-                        <option value="Beginner">Beginner</option>
-                        <option value="Intermediate">Intermediate</option>
-                        <option value="Advanced">Advanced</option>
-                        <option value="Expert">Expert</option>
+                        <option value="Beginner" {{ 'selected' if current_level == 'Beginner' else '' }}>Beginner</option>
+                        <option value="Intermediate" {{ 'selected' if current_level == 'Intermediate' else '' }}>Intermediate</option>
+                        <option value="Advanced" {{ 'selected' if current_level == 'Advanced' else '' }}>Advanced</option>
+                        <option value="Expert" {{ 'selected' if current_level == 'Expert' else '' }}>Expert</option>
                     </select>
                 </div>
                 <div class="mb-3">
                     <label for="searchFilter" class="form-label">Search</label>
-                    <input type="text" class="form-control" id="searchFilter" placeholder="Search skills...">
+                    <input type="text" class="form-control" id="searchFilter" placeholder="Search skills..." value="{{ current_search or '' }}">
                 </div>
                 <button class="btn btn-primary w-100" onclick="applyFilters()">
                     <i class="fas fa-search me-2"></i>Apply Filters
@@ -82,9 +82,41 @@
                                     {% else %}
                                     <span class="avatar-placeholder bg-light rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 28px; height: 28px;"><i class="fas fa-user text-muted"></i></span>
                                     {% endif %}
-                                    <small class="text-muted">by {{ skill.user_name }}</small>
+                                    <div>
+                                        <small class="text-muted">by {{ skill.user_name }}</small>
+                                        {% if skill.user_badge %}
+                                        <br><span class="badge bg-{{ 'warning' if skill.user_badge == 'gold' else 'secondary' if skill.user_badge == 'silver' else 'dark' }} badge-sm">
+                                            <i class="fas fa-{{ 'crown' if skill.user_badge == 'gold' else 'medal' if skill.user_badge == 'silver' else 'award' }}"></i>
+                                        </span>
+                                        {% endif %}
+                                    </div>
                                 </div>
                             </div>
+                            
+                            <!-- Skills Required and Offered -->
+                            <div class="mb-2">
+                                <small class="text-muted">
+                                    <i class="fas fa-graduation-cap me-1"></i>Skills Offered: {{ skill.user_skills_count or 0 }}
+                                </small>
+                                <br>
+                                <small class="text-muted">
+                                    <i class="fas fa-search me-1"></i>Skills Required: {{ skill.user_required_skills_count or 0 }}
+                                </small>
+                            </div>
+                            
+                            <!-- User Rating -->
+                            {% if skill.user_rating and skill.user_rating > 0 %}
+                            <div class="mb-2">
+                                <div class="d-flex align-items-center">
+                                    <div class="text-warning me-1">
+                                        {% for i in range(5) %}
+                                        <i class="fas fa-star{{ '-o' if i >= skill.user_rating else '' }}"></i>
+                                        {% endfor %}
+                                    </div>
+                                    <small class="text-muted">({{ "%.1f"|format(skill.user_rating) }})</small>
+                                </div>
+                            </div>
+                            {% endif %}
                             <div class="d-grid">
                                 <a href="{{ url_for('exchange', skill_id=skill.id) }}" class="btn btn-primary btn-sm">
                                     <i class="fas fa-exchange-alt me-1"></i>Propose Exchange
@@ -232,8 +264,14 @@ function applyFilters() {
     const level = document.getElementById('levelFilter').value;
     const search = document.getElementById('searchFilter').value;
     
-    // This would typically make an AJAX call to filter skills
-    console.log('Applying filters:', { category, level, search });
+    // Build query parameters
+    const params = new URLSearchParams();
+    if (category) params.append('category', category);
+    if (level) params.append('level', level);
+    if (search) params.append('search', search);
+    
+    // Redirect to filtered results
+    window.location.href = `/skills?${params.toString()}`;
 }
 
 function setView(view) {

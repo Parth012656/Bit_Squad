@@ -1,4 +1,4 @@
--- Admin Role Migration for SkillSwap
+-- Admin Role Migration for Skillify
 -- Run this script in MySQL Workbench to add admin functionality
 
 -- Add admin fields to users table
@@ -59,11 +59,11 @@ CREATE INDEX idx_reports_created ON reports(created_at);
 -- Insert a default admin user (password: admin123)
 -- You should change this password after first login
 INSERT INTO users (name, email, password_hash, role, created_at) 
-VALUES ('Admin', 'admin@skillswap.com', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj/RK.s5uOeK', 'admin', NOW());
+VALUES ('Admin', 'admin@skillify.com', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj/RK.s5uOeK', 'admin', NOW());
 
 -- Sample platform message
 INSERT INTO platform_messages (title, message, message_type, created_by) 
-VALUES ('Welcome to SkillSwap!', 'Welcome to our community! We''re excited to have you here. Please read our community guidelines and start sharing your skills.', 'info', 1);
+VALUES ('Welcome to Skillify!', 'Welcome to our community! We''re excited to have you here. Please read our community guidelines and start sharing your skills.', 'info', 1);
 
 -- Display success message
 SELECT 'Admin migration completed successfully!' as status; 

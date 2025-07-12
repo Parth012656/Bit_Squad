@@ -40,6 +40,7 @@ def create_app(config_name='development'):
     from models.skill import Skill
     from models.exchange import Exchange
     from models.admin import PlatformMessage, ModerationAction, Report
+    from models.notification import Notification
     
     @login_manager.user_loader
     def load_user(user_id):
@@ -257,39 +258,47 @@ def create_app(config_name='development'):
     @login_required
     @admin_required
     def download_reports():
-        """Download reports as CSV"""
-        import csv
+        """Download comprehensive reports with user activity"""
         from io import StringIO
+        import csv
+        
+        output = StringIO()
+        writer = csv.writer(output)
+        
+        # Write header
+        writer.writerow(['Report Type', 'User Activity', 'Feedback', 'Swap Activity', 'Date', 'Reporter', 'Status'])
         
         # Get all reports
         reports = Report.query.all()
-        
-        # Create CSV
-        si = StringIO()
-        cw = csv.writer(si)
-        cw.writerow(['ID', 'Type', 'Target Type', 'Target ID', 'Description', 'Status', 'Created', 'Resolved', 'Reporter', 'Resolver'])
-        
         for report in reports:
-            cw.writerow([
-                report.id,
+            user = User.query.get(report.reporter_id)
+            user_activity = f"User: {user.name if user else 'Unknown'}, Rating: {user.total_rating if user else 0}"
+            
+            # Get user's feedback count
+            feedback_count = Exchange.query.filter_by(
+                offering_user_id=user.id if user else 0
+            ).filter(Exchange.feedback.isnot(None)).count()
+            
+            # Get user's swap activity
+            swap_count = Exchange.query.filter_by(
+                offering_user_id=user.id if user else 0, status='Completed'
+            ).count()
+            
+            writer.writerow([
                 report.report_type,
-                report.target_type,
-                report.target_id,
-                report.description,
-                report.status,
-                report.created_at.strftime('%Y-%m-%d %H:%M:%S') if report.created_at else '',
-                report.resolved_at.strftime('%Y-%m-%d %H:%M:%S') if report.resolved_at else '',
-                report.reporter.name if report.reporter else '',
-                report.resolver.name if report.resolver else ''
+                user_activity,
+                f"{feedback_count} feedbacks",
+                f"{swap_count} swaps",
+                report.created_at.strftime('%Y-%m-%d %H:%M') if report.created_at else 'Unknown',
+                user.name if user else 'Unknown',
+                report.status
             ])
         
-        output = si.getvalue()
-        si.close()
-        
+        output.seek(0)
         return Response(
-            output,
+            output.getvalue(),
             mimetype='text/csv',
-            headers={'Content-Disposition': 'attachment; filename=reports.csv'}
+            headers={'Content-Disposition': 'attachment; filename=user_activity_report.csv'}
         )
     
     @app.route('/admin/analytics')
@@ -327,6 +336,61 @@ def create_app(config_name='development'):
                             banned_users=banned_users,
                             pending_reports=pending_reports)
     
+    @app.route('/admin/analytics/download')
+    @login_required
+    @admin_required
+    def download_analytics():
+        """Download comprehensive analytics report"""
+        from io import StringIO
+        import csv
+        
+        output = StringIO()
+        writer = csv.writer(output)
+        
+        # Write header
+        writer.writerow(['Metric', 'Value', 'Description'])
+        
+        # Get analytics data
+        total_users = User.query.count()
+        new_users_this_month = User.query.filter(
+            User.created_at >= datetime.utcnow().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        ).count()
+        total_exchanges = Exchange.query.count()
+        completed_exchanges = Exchange.query.filter_by(status='Completed').count()
+        pending_exchanges = Exchange.query.filter_by(status='Pending').count()
+        total_skills = Skill.query.count()
+        banned_users = User.query.filter_by(is_banned=True).count()
+        pending_reports = Report.query.filter_by(status='pending').count()
+        
+        # Write data
+        writer.writerow(['Total Users', total_users, 'Total registered users'])
+        writer.writerow(['New Users This Month', new_users_this_month, 'Users registered this month'])
+        writer.writerow(['Total Skills', total_skills, 'Total skills shared'])
+        writer.writerow(['Total Exchanges', total_exchanges, 'Total exchanges initiated'])
+        writer.writerow(['Completed Exchanges', completed_exchanges, 'Successfully completed exchanges'])
+        writer.writerow(['Pending Exchanges', pending_exchanges, 'Exchanges awaiting completion'])
+        writer.writerow(['Banned Users', banned_users, 'Users currently banned'])
+        writer.writerow(['Pending Reports', pending_reports, 'Reports awaiting review'])
+        
+        # Add completion rate
+        completion_rate = (completed_exchanges / total_exchanges * 100) if total_exchanges > 0 else 0
+        writer.writerow(['Completion Rate', f"{completion_rate:.1f}%", 'Percentage of completed exchanges'])
+        
+        # Add skills by category
+        writer.writerow([])  # Empty row
+        writer.writerow(['Skills by Category', '', ''])
+        skills_by_category = db.session.query(Skill.category, db.func.count(Skill.id)).group_by(Skill.category).all()
+        for category, count in skills_by_category:
+            percentage = (count / total_skills * 100) if total_skills > 0 else 0
+            writer.writerow([category, count, f"{percentage:.1f}% of total skills"])
+        
+        output.seek(0)
+        return Response(
+            output.getvalue(),
+            mimetype='text/csv',
+            headers={'Content-Disposition': 'attachment; filename=skillify_analytics_report.csv'}
+        )
+    
     # Profile photo upload
     @app.route('/upload_photo', methods=['POST'])
     @login_required
@@ -361,15 +425,44 @@ def create_app(config_name='development'):
     @app.route('/skills')
     def skills():
         page = request.args.get('page', 1, type=int)
+        category = request.args.get('category', '')
+        level = request.args.get('level', '')
+        search = request.args.get('search', '')
         per_page = 6
+        
+        # Build query with filters
         skills_query = Skill.query.join(User).filter(User.is_public == True)
+        
+        if category:
+            skills_query = skills_query.filter(Skill.category == category)
+        if level:
+            skills_query = skills_query.filter(Skill.level == level)
+        if search:
+            skills_query = skills_query.filter(
+                db.or_(
+                    Skill.name.contains(search),
+                    Skill.description.contains(search),
+                    User.name.contains(search)
+                )
+            )
+        
         skills_paginated = skills_query.paginate(page=page, per_page=per_page, error_out=False)
         
-        # Add user profile photo to each skill
+        # Add user profile photo, badge, and rating to each skill
         for skill in skills_paginated.items:
             skill.user_profile_photo = skill.user.profile_photo if skill.user else None
+            skill.user_name = skill.user.name if skill.user else 'Unknown'
+            skill.user_badge = skill.user.badge if skill.user else None
+            skill.user_rating = skill.user.total_rating if skill.user else 0
+            skill.user_skills_count = Skill.query.filter_by(user_id=skill.user.id).count() if skill.user else 0
+            skill.user_required_skills_count = Exchange.query.filter_by(requesting_user_id=skill.user.id, status='Completed').count() if skill.user else 0
         
-        return render_template('skills.html', skills=skills_paginated.items, pagination=skills_paginated)
+        return render_template('skills.html', 
+                            skills=skills_paginated.items, 
+                            pagination=skills_paginated,
+                            current_category=category,
+                            current_level=level,
+                            current_search=search)
 
     # Swap request management (accept/reject/complete/cancel)
     @app.route('/exchange/<int:exchange_id>/action', methods=['POST'])
@@ -390,17 +483,7 @@ def create_app(config_name='development'):
         flash(f'Exchange {action}ed successfully!')
         return redirect(url_for('dashboard'))
 
-    # Feedback/rating after swap
-    @app.route('/exchange/<int:exchange_id>/feedback', methods=['POST'])
-    @login_required
-    def exchange_feedback(exchange_id):
-        exchange = Exchange.query.get_or_404(exchange_id)
-        if exchange.status == 'Completed' and (exchange.offering_user_id == current_user.id or exchange.requesting_user_id == current_user.id):
-            exchange.rating = int(request.form.get('rating'))
-            exchange.feedback = request.form.get('feedback')
-            db.session.commit()
-            flash('Feedback submitted!')
-        return redirect(url_for('dashboard'))
+
     
     # Routes
     @app.route('/')
@@ -499,6 +582,181 @@ def create_app(config_name='development'):
         db.session.commit()
         return jsonify(skill.to_dict()), 201
     
+
+    
+    # User reporting functionality
+    @app.route('/report/<string:target_type>/<int:target_id>', methods=['GET', 'POST'])
+    @login_required
+    def report_content(target_type, target_id):
+        """Report inappropriate content"""
+        if request.method == 'POST':
+            report_type = request.form.get('report_type')
+            description = request.form.get('description')
+            
+            report = Report(
+                report_type=report_type,
+                target_type=target_type,
+                target_id=target_id,
+                description=description,
+                reporter_id=current_user.id
+            )
+            db.session.add(report)
+            db.session.commit()
+            
+            # Create notification for all admins
+            admins = User.query.filter_by(role='admin').all()
+            for admin in admins:
+                create_notification(
+                    admin.id,
+                    "New Report Submitted",
+                    f"New {report_type} report submitted for {target_type} ID {target_id}",
+                    "report",
+                    report.id,
+                    "report"
+                )
+            
+            flash('Report submitted successfully. Thank you for helping keep our community safe.')
+            return redirect(url_for('skills'))
+        
+        return render_template('report.html', target_type=target_type, target_id=target_id)
+    
+    # Edit Profile
+    @app.route('/edit_profile', methods=['GET', 'POST'])
+    @login_required
+    def edit_profile():
+        """Edit user profile"""
+        if request.method == 'POST':
+            current_user.name = request.form.get('name')
+            current_user.email = request.form.get('email')
+            current_user.location = request.form.get('location')
+            current_user.gender = request.form.get('gender')
+            current_user.bio = request.form.get('bio')
+            
+            # Handle photo upload
+            if 'photo' in request.files:
+                file = request.files['photo']
+                if file.filename != '' and allowed_file(file.filename):
+                    filename = secure_filename(f"user_{current_user.id}_{file.filename}")
+                    file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                    current_user.profile_photo = filename
+            
+            db.session.commit()
+            flash('Profile updated successfully!')
+            return redirect(url_for('edit_profile'))
+        
+        return render_template('edit_profile.html')
+    
+    # Leaderboard
+    @app.route('/leaderboard')
+    def leaderboard():
+        """Show leaderboard of top users"""
+        # Get users with their stats
+        users = User.query.filter_by(is_banned=False).all()
+        
+        for user in users:
+            # Calculate exchange count
+            user.exchanges_count = Exchange.query.filter_by(
+                offering_user_id=user.id, status='Completed'
+            ).count() + Exchange.query.filter_by(
+                requesting_user_id=user.id, status='Completed'
+            ).count()
+            
+            # Calculate skills count
+            user.skills_count = Skill.query.filter_by(user_id=user.id).count()
+        
+        # Sort by rating and achievements
+        leaderboard_users = sorted(users, key=lambda x: (x.total_rating, x.daily_tasks_completed), reverse=True)[:20]
+        
+        return render_template('leaderboard.html', leaderboard_users=leaderboard_users)
+    
+    # Notifications
+    @app.route('/notifications')
+    @login_required
+    def notifications():
+        """Show all notifications"""
+        return render_template('notifications.html')
+    
+    # API Routes for Notifications
+    @app.route('/api/notifications/<int:notification_id>/read', methods=['POST'])
+    @login_required
+    def mark_notification_read(notification_id):
+        """Mark a notification as read"""
+        notification = Notification.query.get_or_404(notification_id)
+        if notification.user_id == current_user.id:
+            notification.is_read = True
+            db.session.commit()
+            return jsonify({'success': True})
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 403
+    
+    @app.route('/api/notifications/mark-all-read', methods=['POST'])
+    @login_required
+    def mark_all_notifications_read():
+        """Mark all notifications as read"""
+        Notification.query.filter_by(user_id=current_user.id, is_read=False).update({'is_read': True})
+        db.session.commit()
+        return jsonify({'success': True})
+    
+    # Helper function to create notifications
+    def create_notification(user_id, title, message, notification_type, related_id=None, related_type=None):
+        """Create a new notification"""
+        notification = Notification(
+            user_id=user_id,
+            title=title,
+            message=message,
+            notification_type=notification_type,
+            related_id=related_id,
+            related_type=related_type
+        )
+        db.session.add(notification)
+        db.session.commit()
+    
+    # Update exchange feedback to create notifications and update ratings
+    @app.route('/exchange/<int:exchange_id>/feedback', methods=['POST'])
+    @login_required
+    def exchange_feedback(exchange_id):
+        exchange = Exchange.query.get_or_404(exchange_id)
+        if exchange.status == 'Completed' and (exchange.offering_user_id == current_user.id or exchange.requesting_user_id == current_user.id):
+            rating = int(request.form.get('rating'))
+            feedback = request.form.get('feedback')
+            
+            exchange.rating = rating
+            exchange.feedback = feedback
+            
+            # Update user ratings
+            if exchange.offering_user_id == current_user.id:
+                # Current user is rating the requesting user
+                rated_user = User.query.get(exchange.requesting_user_id)
+                rated_user.update_rating(rating)
+                
+                # Create notification for rated user
+                create_notification(
+                    exchange.requesting_user_id,
+                    "New Rating Received",
+                    f"You received a {rating}/5 rating for your skill exchange.",
+                    "rating",
+                    exchange.id,
+                    "exchange"
+                )
+            else:
+                # Current user is rating the offering user
+                rated_user = User.query.get(exchange.offering_user_id)
+                rated_user.update_rating(rating)
+                
+                # Create notification for rated user
+                create_notification(
+                    exchange.offering_user_id,
+                    "New Rating Received",
+                    f"You received a {rating}/5 rating for your skill exchange.",
+                    "rating",
+                    exchange.id,
+                    "exchange"
+                )
+            
+            db.session.commit()
+            flash('Feedback submitted!')
+        return redirect(url_for('dashboard'))
+    
+    # Update exchange creation to create notifications
     @app.route('/api/exchanges', methods=['POST'])
     @login_required
     def api_create_exchange():
@@ -534,35 +792,25 @@ def create_app(config_name='development'):
         db.session.add(exchange)
         db.session.commit()
         
+        # Create notification for the skill owner
+        create_notification(
+            requesting_skill.user_id,
+            "New Exchange Request",
+            f"{current_user.name} wants to exchange skills with you!",
+            "swap_request",
+            exchange.id,
+            "exchange"
+        )
+        
         return jsonify({
             'id': exchange.id,
             'status': exchange.status,
             'message': 'Exchange proposal created successfully'
         }), 201
     
-    # User reporting functionality
-    @app.route('/report/<string:target_type>/<int:target_id>', methods=['GET', 'POST'])
-    @login_required
-    def report_content(target_type, target_id):
-        """Report inappropriate content"""
-        if request.method == 'POST':
-            report_type = request.form.get('report_type')
-            description = request.form.get('description')
-            
-            report = Report(
-                report_type=report_type,
-                target_type=target_type,
-                target_id=target_id,
-                description=description,
-                reporter_id=current_user.id
-            )
-            db.session.add(report)
-            db.session.commit()
-            
-            flash('Report submitted successfully. Thank you for helping keep our community safe.')
-            return redirect(url_for('skills'))
-        
-        return render_template('report.html', target_type=target_type, target_id=target_id)
+
+    
+
     
     return app
 

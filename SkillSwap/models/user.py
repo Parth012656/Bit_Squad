@@ -15,6 +15,13 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(255), nullable=False)
     bio = db.Column(db.Text)
     location = db.Column(db.String(100))
+    gender = db.Column(db.String(20))  # male, female, other, prefer_not_to_say
+    achievements = db.Column(db.Text)  # JSON string of achievements
+    daily_tasks_completed = db.Column(db.Integer, default=0)
+    weekly_tasks_completed = db.Column(db.Integer, default=0)
+    total_rating = db.Column(db.Float, default=0.0)
+    total_ratings_count = db.Column(db.Integer, default=0)
+    badge = db.Column(db.String(20), default='bronze')  # bronze, silver, gold
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     profile_photo = db.Column(db.String(255), nullable=True)  # URL or filename
@@ -29,6 +36,7 @@ class User(UserMixin, db.Model):
     skills = db.relationship('Skill', backref='user', lazy=True)
     exchanges_offered = db.relationship('Exchange', foreign_keys='Exchange.offering_user_id', backref='offering_user', lazy=True)
     exchanges_requested = db.relationship('Exchange', foreign_keys='Exchange.requesting_user_id', backref='requesting_user', lazy=True)
+    notifications = db.relationship('Notification', backref='user', lazy=True, order_by='Notification.created_at.desc()')
     
     def set_password(self, password):
         self.password_hash = generate_password_hash(password, method='pbkdf2:sha256')
@@ -51,6 +59,41 @@ class User(UserMixin, db.Model):
         self.banned_at = None
         self.banned_by = None
     
+    def update_rating(self, new_rating):
+        """Update user's average rating"""
+        self.total_ratings_count += 1
+        total_rating_sum = (self.total_rating * (self.total_ratings_count - 1)) + new_rating
+        self.total_rating = total_rating_sum / self.total_ratings_count
+        self.update_badge()
+    
+    def update_badge(self):
+        """Update user badge based on achievements and rating"""
+        if self.total_rating >= 4.5 and self.daily_tasks_completed >= 50:
+            self.badge = 'gold'
+        elif self.total_rating >= 4.0 and self.daily_tasks_completed >= 25:
+            self.badge = 'silver'
+        else:
+            self.badge = 'bronze'
+    
+    def add_achievement(self, achievement):
+        """Add a new achievement"""
+        import json
+        achievements_list = []
+        if self.achievements:
+            try:
+                achievements_list = json.loads(self.achievements)
+            except:
+                achievements_list = []
+        
+        achievements_list.append({
+            'title': achievement['title'],
+            'description': achievement['description'],
+            'date': datetime.utcnow().isoformat(),
+            'type': achievement.get('type', 'general')
+        })
+        
+        self.achievements = json.dumps(achievements_list)
+    
     def to_dict(self):
         return {
             'id': self.id,
@@ -58,8 +101,14 @@ class User(UserMixin, db.Model):
             'email': self.email,
             'bio': self.bio,
             'location': self.location,
+            'gender': self.gender,
             'role': self.role,
             'is_banned': self.is_banned,
+            'badge': self.badge,
+            'total_rating': self.total_rating,
+            'total_ratings_count': self.total_ratings_count,
+            'daily_tasks_completed': self.daily_tasks_completed,
+            'weekly_tasks_completed': self.weekly_tasks_completed,
             'created_at': self.created_at.isoformat() if self.created_at else None
         }
     
