@@ -67,13 +67,27 @@ class User(UserMixin, db.Model):
         self.update_badge()
     
     def update_badge(self):
-        """Update user badge based on achievements and rating"""
-        if self.total_rating >= 4.5 and self.daily_tasks_completed >= 50:
+        """Update user badge based on rating and activity"""
+        # Calculate total activity score
+        total_activity = self.daily_tasks_completed + self.weekly_tasks_completed
+        
+        # Update badge based on rating and activity
+        if self.total_rating >= 4.5 and total_activity >= 30:
             self.badge = 'gold'
-        elif self.total_rating >= 4.0 and self.daily_tasks_completed >= 25:
+        elif self.total_rating >= 4.0 and total_activity >= 15:
+            self.badge = 'silver'
+        elif self.total_rating >= 3.5 and total_activity >= 5:
             self.badge = 'silver'
         else:
             self.badge = 'bronze'
+    
+    @classmethod
+    def update_all_badges(cls):
+        """Update badges for all users"""
+        users = cls.query.all()
+        for user in users:
+            user.update_badge()
+        db.session.commit()
     
     def add_achievement(self, achievement):
         """Add a new achievement"""
