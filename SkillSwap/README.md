@@ -1,33 +1,94 @@
+# Team Name 2218 – Bit Squad  
+**Team Leader**: Parth Mantri  
+**Team Members**:  
+- Parth Mantri – [parthmantri033@gmail.com]
+- Atharv Sharma – [hanusharma1552004@gmail.com]  
+- Manan Jaiswal – [mananjaiswal244@gmail.com]  
+- Arjun Parashar – [arjunparashar488@gmail.com]  
+
+**Contact Email**: parthmantri033@gmail.com
+
+---
+
 # SkillSwap
 
 A web application for skill exchange between users. Connect with others, share your skills, and learn something new through mutual skill exchanges.
 
 ## Features
 
-- **User Authentication**: Secure login and registration system
-- **Skill Management**: Add, edit, and manage your skills
-- **Skill Browsing**: Browse available skills with filtering and search
-- **Skill Exchange**: Propose and manage skill exchanges
-- **User Dashboard**: Personal dashboard to manage your profile and skills
-- **Responsive Design**: Modern, mobile-friendly interface
+- **User Authentication** – Secure login and registration system  
+- **Skill Management** – Add, edit, and manage your skills  
+- **Skill Browsing** – Browse available skills with filtering and search  
+- **Skill Exchange** – Propose and manage skill exchanges  
+- **User Dashboard** – Personal dashboard to manage your profile and skills  
+- **Responsive Design** – Modern, mobile-friendly interface  
 
-## Technology Stack
+---
+
+## 📋 Page-wise Functionality
+
+### 🏠 Home Page 
+- Search Option  
+- Availability Toggle  (Date and Time Wise)
+- View Others’ Swap Requests  
+
+  
+### 👤 Leaderboard Ranking 
+- Badges: Bronze, Silver, Gold  
+
+### 👤 Profile Page  
+- Display:
+  - Name, Location  
+  - Skills Required & Skills Wanted  
+- Visibility Control:
+  - Public → Shows Swap
+  - Private → Hides Swap  
+- Notifications:
+  - Swap Requests  
+  - Admin Messages 
+  - Chat
+
+### Chating  
+- Real Time Chat With Other Users 
+
+### 👥 Others' Profile Page
+- Same View as User Profile   
+- Request Option:
+  - Select Required Skills  
+  - Select Offered Skills  
+- Report Users
+- Chat With Other Users
+
+### 🛠️ Admin Dashboard
+- Website Statistics:
+  - Total Users  
+  - Active Swaps  
+  - Completed Swaps  
+- Admin Controls:
+  - User Banning/Unbanning  
+  - Review User Requests  
+  - Broadcast Platform-Wide Notifications  
+
+---
+
+## 💻 Technology Stack
 
 ### Backend
-- **Python Flask**: Web framework
-- **Flask-SQLAlchemy**: Database ORM
-- **Flask-Login**: User authentication
-- **MySQL**: Database
-- **Werkzeug**: Security utilities
+- **Python Flask** – Web framework  
+- **Flask-SQLAlchemy** – Database ORM  
+- **Flask-Login** – User authentication  
+- **MySQL** – Database  
+- **Werkzeug** – Security utilities  
 
 ### Frontend
-- **HTML5**: Semantic markup
-- **CSS3**: Modern styling with Bootstrap 5
-- **JavaScript**: Interactive functionality
-- **Bootstrap 5**: Responsive UI framework
-- **Font Awesome**: Icons
+- **HTML5** – Semantic Markup  
+- **CSS3** – Bootstrap 5 for UI  
+- **JavaScript** – Dynamic Client-Side Logic  
+- **Font Awesome** – Icons  
 
-## Project Structure
+---
+
+## 🗂️ Project Structure
 
 ```
 SkillSwap/
@@ -189,9 +250,6 @@ FLASK_ENV=development
 4. Test thoroughly
 5. Submit a pull request
 
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
 
 ## Support
 
@@ -199,10 +257,9 @@ For support, please open an issue in the repository or contact the development t
 
 ## Future Enhancements
 
-- [ ] Real-time messaging between users
-- [ ] Skill rating and review system
 - [ ] Video call integration for remote exchanges
 - [ ] Mobile app development
 - [ ] Advanced search and filtering
 - [ ] Skill verification system
 - [ ] Payment integration for premium features 
+- [ ] AI Integeration 
