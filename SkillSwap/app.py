@@ -42,6 +42,8 @@ def create_app(config_name='development'):
     from models.exchange import Exchange
     from models.admin import PlatformMessage, ModerationAction, Report
     from models.notification import Notification
+    from models.chat import ChatRoom, ChatMessage
+    from models.availability import Availability, ExchangeSchedule
     
     @login_manager.user_loader
     def load_user(user_id):
@@ -408,10 +410,17 @@ def create_app(config_name='development'):
     @login_required
     @admin_required
     def update_all_badges():
+<<<<<<< HEAD
         """Update badges for all users based on current ratings and activity"""
         try:
             User.update_all_badges()
             flash('All user badges have been updated successfully!')
+=======
+        """Update badges for all users based on current ratings only"""
+        try:
+            User.update_all_badges()
+            flash('All user badges have been updated based on ratings!')
+>>>>>>> 60c18a0359b7bf6ae677c56f69f1ddc24a93ee99
         except Exception as e:
             flash(f'Error updating badges: {str(e)}')
         return redirect(url_for('admin_dashboard'))
@@ -524,17 +533,37 @@ def create_app(config_name='development'):
     def exchange_action(exchange_id):
         action = request.form.get('action')
         exchange = Exchange.query.get_or_404(exchange_id)
+        
+        # Validate that the exchange has valid skill references
+        if not exchange.offered_skill_id or not exchange.requested_skill_id:
+            flash('Invalid exchange data. Please contact support.')
+            return redirect(url_for('dashboard'))
+        
         if action == 'accept' and exchange.status == 'Pending' and exchange.requesting_user_id == current_user.id:
             exchange.status = 'Accepted'
+            exchange.update_timestamp()
         elif action == 'reject' and exchange.status == 'Pending' and exchange.requesting_user_id == current_user.id:
             exchange.status = 'Rejected'
+            exchange.update_timestamp()
         elif action == 'cancel' and exchange.status == 'Pending' and exchange.offering_user_id == current_user.id:
             exchange.status = 'Cancelled'
+            exchange.update_timestamp()
         elif action == 'complete' and exchange.status == 'Accepted' and (exchange.offering_user_id == current_user.id or exchange.requesting_user_id == current_user.id):
             exchange.status = 'Completed'
             exchange.completed_at = datetime.utcnow()
-        db.session.commit()
-        flash(f'Exchange {action}ed successfully!')
+            exchange.update_timestamp()
+        else:
+            flash('Invalid action or insufficient permissions.')
+            return redirect(url_for('dashboard'))
+        
+        try:
+            db.session.commit()
+            flash(f'Exchange {action}ed successfully!')
+        except Exception as e:
+            db.session.rollback()
+            flash('Error updating exchange. Please try again.')
+            print(f"Exchange update error: {e}")
+        
         return redirect(url_for('dashboard'))
 
 
@@ -555,7 +584,11 @@ def create_app(config_name='development'):
             
             if user and check_password_hash(user.password_hash, password):
                 login_user(user)
-                return redirect(url_for('dashboard'))
+                # Redirect admins to admin panel
+                if user.role == 'admin':
+                    return redirect(url_for('admin_dashboard'))
+                else:
+                    return redirect(url_for('dashboard'))
             else:
                 flash('Invalid email or password')
         
@@ -630,11 +663,53 @@ def create_app(config_name='development'):
             name=data['name'],
             description=data['description'],
             category=data['category'],
+            level=data['level'],
             user_id=current_user.id
         )
         db.session.add(skill)
         db.session.commit()
         return jsonify(skill.to_dict()), 201
+    
+    @app.route('/api/skills/<int:skill_id>', methods=['PUT'])
+    @login_required
+    def api_update_skill(skill_id):
+        """API endpoint to update a skill"""
+        skill = Skill.query.get_or_404(skill_id)
+        
+        # Check if user owns this skill
+        if skill.user_id != current_user.id:
+            return jsonify({'error': 'Unauthorized'}), 403
+        
+        data = request.get_json()
+        
+        skill.name = data['name']
+        skill.description = data['description']
+        skill.category = data['category']
+        skill.level = data['level']
+        
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Skill updated successfully'
+        })
+    
+    @app.route('/delete_skill/<int:skill_id>', methods=['POST'])
+    @login_required
+    def delete_skill(skill_id):
+        """Delete a skill"""
+        skill = Skill.query.get_or_404(skill_id)
+        
+        # Check if user owns this skill
+        if skill.user_id != current_user.id:
+            flash('You can only delete your own skills!')
+            return redirect(url_for('dashboard'))
+        
+        db.session.delete(skill)
+        db.session.commit()
+        
+        flash('Skill deleted successfully!')
+        return redirect(url_for('dashboard'))
     
 
     
@@ -728,7 +803,8 @@ def create_app(config_name='development'):
     @login_required
     def notifications():
         """Show all notifications"""
-        return render_template('notifications.html')
+        notifications = Notification.query.filter_by(user_id=current_user.id).order_by(Notification.created_at.desc()).all()
+        return render_template('notifications.html', notifications=notifications)
     
     # API Routes for Notifications
     @app.route('/api/notifications/<int:notification_id>/read', methods=['POST'])
@@ -834,6 +910,17 @@ def create_app(config_name='development'):
         if existing_exchange:
             return jsonify({'error': 'You already have a pending exchange for this skill'}), 400
         
+        # Validate skill IDs before creating exchange
+        if not data.get('offering_skill_id') or not data.get('requesting_skill_id'):
+            return jsonify({'error': 'Invalid skill IDs provided'}), 400
+        
+        # Verify skills exist
+        offering_skill = Skill.query.get(data['offering_skill_id'])
+        requesting_skill = Skill.query.get(data['requesting_skill_id'])
+        
+        if not offering_skill or not requesting_skill:
+            return jsonify({'error': 'One or both skills not found'}), 404
+        
         exchange = Exchange(
             offering_user_id=current_user.id,
             requesting_user_id=requesting_skill.user_id,
@@ -843,8 +930,13 @@ def create_app(config_name='development'):
             status='Pending'
         )
         
-        db.session.add(exchange)
-        db.session.commit()
+        try:
+            db.session.add(exchange)
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            print(f"Exchange creation error: {e}")
+            return jsonify({'error': 'Failed to create exchange'}), 500
         
         # Create notification for the skill owner
         create_notification(
@@ -862,9 +954,209 @@ def create_app(config_name='development'):
             'message': 'Exchange proposal created successfully'
         }), 201
     
-
+    # Chat routes
+    @app.route('/chat')
+    @login_required
+    def chat_list():
+        """Show list of chat rooms"""
+        chat_rooms = current_user.get_chat_rooms()
+        return render_template('chat/list.html', chat_rooms=chat_rooms)
     
-
+    @app.route('/chat/<int:user_id>')
+    @login_required
+    def start_chat(user_id):
+        """Start or continue chat with a user"""
+        if user_id == current_user.id:
+            flash('You cannot chat with yourself!')
+            return redirect(url_for('chat_list'))
+        
+        other_user = User.query.get_or_404(user_id)
+        chat_room = current_user.get_or_create_chat_room(user_id)
+        
+        # Mark messages as read
+        ChatMessage.query.filter_by(
+            chat_room_id=chat_room.id,
+            sender_id=other_user.id,
+            is_read=False
+        ).update({'is_read': True})
+        db.session.commit()
+        
+        return render_template('chat/room.html', chat_room=chat_room, other_user=other_user)
+    
+    @app.route('/api/chat/<int:chat_room_id>/messages', methods=['GET'])
+    @login_required
+    def get_chat_messages(chat_room_id):
+        """Get messages for a chat room"""
+        chat_room = ChatRoom.query.get_or_404(chat_room_id)
+        
+        # Check if user is part of this chat room
+        if chat_room.user1_id != current_user.id and chat_room.user2_id != current_user.id:
+            return jsonify({'error': 'Unauthorized'}), 403
+        
+        messages = ChatMessage.query.filter_by(chat_room_id=chat_room_id).order_by(ChatMessage.created_at).all()
+        
+        return jsonify([{
+            'id': msg.id,
+            'sender_id': msg.sender_id,
+            'message': msg.message,
+            'created_at': msg.created_at.isoformat(),
+            'is_mine': msg.sender_id == current_user.id
+        } for msg in messages])
+    
+    @app.route('/api/chat/<int:chat_room_id>/send', methods=['POST'])
+    @login_required
+    def send_message(chat_room_id):
+        """Send a message in a chat room"""
+        chat_room = ChatRoom.query.get_or_404(chat_room_id)
+        
+        # Check if user is part of this chat room
+        if chat_room.user1_id != current_user.id and chat_room.user2_id != current_user.id:
+            return jsonify({'error': 'Unauthorized'}), 403
+        
+        message_text = request.json.get('message', '').strip()
+        if not message_text:
+            return jsonify({'error': 'Message cannot be empty'}), 400
+        
+        # Create new message
+        message = ChatMessage(
+            chat_room_id=chat_room_id,
+            sender_id=current_user.id,
+            message=message_text
+        )
+        
+        # Update last message time
+        chat_room.last_message_at = datetime.utcnow()
+        
+        db.session.add(message)
+        db.session.commit()
+        
+        # Create notification for the other user
+        other_user_id = chat_room.get_other_user(current_user.id).id
+        create_notification(
+            other_user_id,
+            f"New message from {current_user.name}",
+            message_text[:50] + "..." if len(message_text) > 50 else message_text,
+            "chat_message",
+            chat_room_id,
+            "chat_room"
+        )
+        
+        return jsonify({
+            'id': message.id,
+            'message': message.message,
+            'created_at': message.created_at.isoformat(),
+            'sender_id': message.sender_id
+        }), 201
+    
+    @app.route('/api/chat/unread-count')
+    @login_required
+    def get_unread_chat_count():
+        """Get unread chat messages count"""
+        count = current_user.get_unread_chat_count()
+        return jsonify({'count': count})
+    
+    # Availability routes
+    @app.route('/availability')
+    @login_required
+    def availability():
+        """Manage user availability"""
+        availabilities = current_user.get_availability()
+        return render_template('availability.html', availabilities=availabilities)
+    
+    @app.route('/availability/update', methods=['POST'])
+    @login_required
+    def update_availability():
+        """Update user availability"""
+        day_of_week = request.form.get('day_of_week')
+        start_time_str = request.form.get('start_time')
+        end_time_str = request.form.get('end_time')
+        is_available = request.form.get('is_available') == 'true'
+        
+        if not day_of_week or not start_time_str or not end_time_str:
+            flash('Please fill in all fields')
+            return redirect(url_for('availability'))
+        
+        try:
+            from datetime import time
+            start_time = time.fromisoformat(start_time_str)
+            end_time = time.fromisoformat(end_time_str)
+            
+            current_user.set_availability(day_of_week, start_time, end_time, is_available)
+            flash('Availability updated successfully!')
+        except Exception as e:
+            flash(f'Error updating availability: {str(e)}')
+        
+        return redirect(url_for('availability'))
+    
+    @app.route('/api/availability/<int:user_id>')
+    @login_required
+    def get_user_availability(user_id):
+        """Get availability for a specific user"""
+        user = User.query.get_or_404(user_id)
+        availabilities = user.get_availability()
+        return jsonify([avail.to_dict() for avail in availabilities])
+    
+    @app.route('/exchange/<int:exchange_id>/schedule', methods=['GET', 'POST'])
+    @login_required
+    def schedule_exchange(exchange_id):
+        """Schedule an exchange"""
+        exchange = Exchange.query.get_or_404(exchange_id)
+        
+        # Check if user is part of this exchange
+        if exchange.offering_user_id != current_user.id and exchange.requesting_user_id != current_user.id:
+            flash('You are not authorized to schedule this exchange')
+            return redirect(url_for('dashboard'))
+        
+        if request.method == 'POST':
+            scheduled_date = datetime.strptime(request.form.get('date'), '%Y-%m-%d').date()
+            start_time = time.fromisoformat(request.form.get('start_time'))
+            end_time = time.fromisoformat(request.form.get('end_time'))
+            location = request.form.get('location')
+            meeting_type = request.form.get('meeting_type', 'in_person')
+            meeting_link = request.form.get('meeting_link')
+            notes = request.form.get('notes')
+            
+            # Create or update schedule
+            schedule = ExchangeSchedule.query.filter_by(exchange_id=exchange_id).first()
+            if not schedule:
+                schedule = ExchangeSchedule(exchange_id=exchange_id)
+                db.session.add(schedule)
+            
+            schedule.scheduled_date = scheduled_date
+            schedule.start_time = start_time
+            schedule.end_time = end_time
+            schedule.location = location
+            schedule.meeting_type = meeting_type
+            schedule.meeting_link = meeting_link
+            schedule.notes = notes
+            
+            db.session.commit()
+            
+            # Create notification for the other user
+            other_user_id = exchange.requesting_user_id if exchange.offering_user_id == current_user.id else exchange.offering_user_id
+            create_notification(
+                other_user_id,
+                "Exchange Scheduled",
+                f"Your exchange has been scheduled for {scheduled_date.strftime('%B %d, %Y')} at {start_time.strftime('%I:%M %p')}",
+                "exchange_scheduled",
+                exchange_id,
+                "exchange"
+            )
+            
+            flash('Exchange scheduled successfully!')
+            return redirect(url_for('dashboard'))
+        
+        # Get other user's availability
+        other_user_id = exchange.requesting_user_id if exchange.offering_user_id == current_user.id else exchange.offering_user_id
+        other_user = User.query.get(other_user_id)
+        other_availability = other_user.get_availability() if other_user else []
+        
+        from datetime import date
+        return render_template('schedule_exchange.html', 
+                            exchange=exchange, 
+                            other_user=other_user,
+                            other_availability=other_availability,
+                            today=date.today().isoformat())
     
     return app
 

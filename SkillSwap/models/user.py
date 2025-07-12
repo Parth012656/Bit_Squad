@@ -38,6 +38,11 @@ class User(UserMixin, db.Model):
     exchanges_requested = db.relationship('Exchange', foreign_keys='Exchange.requesting_user_id', backref='requesting_user', lazy=True)
     notifications = db.relationship('Notification', backref='user', lazy=True, order_by='Notification.created_at.desc()')
     
+    # Chat relationships
+    chat_rooms_user1 = db.relationship('ChatRoom', foreign_keys='ChatRoom.user1_id', backref='user1_rel', lazy=True)
+    chat_rooms_user2 = db.relationship('ChatRoom', foreign_keys='ChatRoom.user2_id', backref='user2_rel', lazy=True)
+    chat_messages = db.relationship('ChatMessage', foreign_keys='ChatMessage.sender_id', backref='sender_rel', lazy=True)
+    
     def set_password(self, password):
         self.password_hash = generate_password_hash(password, method='pbkdf2:sha256')
     
@@ -67,13 +72,22 @@ class User(UserMixin, db.Model):
         self.update_badge()
     
     def update_badge(self):
-        """Update user badge based on achievements and rating"""
-        if self.total_rating >= 4.5 and self.daily_tasks_completed >= 50:
+        """Update user badge based on rating only"""
+        # Update badge based on rating only
+        if self.total_rating >= 4.5:
             self.badge = 'gold'
-        elif self.total_rating >= 4.0 and self.daily_tasks_completed >= 25:
+        elif self.total_rating >= 4.0:
             self.badge = 'silver'
         else:
             self.badge = 'bronze'
+    
+    @classmethod
+    def update_all_badges(cls):
+        """Update badges for all users based on ratings only"""
+        users = cls.query.all()
+        for user in users:
+            user.update_badge()
+        db.session.commit()
     
     def add_achievement(self, achievement):
         """Add a new achievement"""
@@ -93,6 +107,113 @@ class User(UserMixin, db.Model):
         })
         
         self.achievements = json.dumps(achievements_list)
+    
+    def get_chat_rooms(self):
+        """Get all chat rooms for this user"""
+        from models.chat import ChatRoom
+        return ChatRoom.query.filter(
+            db.or_(
+                ChatRoom.user1_id == self.id,
+                ChatRoom.user2_id == self.id
+            )
+        ).order_by(ChatRoom.last_message_at.desc()).all()
+    
+    def get_or_create_chat_room(self, other_user_id):
+        """Get existing chat room or create new one with another user"""
+        from models.chat import ChatRoom
+        # Check if chat room already exists
+        existing_room = ChatRoom.query.filter(
+            db.or_(
+                db.and_(ChatRoom.user1_id == self.id, ChatRoom.user2_id == other_user_id),
+                db.and_(ChatRoom.user1_id == other_user_id, ChatRoom.user2_id == self.id)
+            )
+        ).first()
+        
+        if existing_room:
+            return existing_room
+        
+        # Create new chat room
+        new_room = ChatRoom(user1_id=self.id, user2_id=other_user_id)
+        db.session.add(new_room)
+        db.session.commit()
+        return new_room
+    
+    def get_unread_chat_count(self):
+        """Get total unread messages count"""
+        from models.chat import ChatMessage, ChatRoom
+        return ChatMessage.query.join(ChatRoom).filter(
+            db.and_(
+                ChatMessage.sender_id != self.id,
+                ChatMessage.is_read == False,
+                db.or_(
+                    ChatRoom.user1_id == self.id,
+                    ChatRoom.user2_id == self.id
+                )
+            )
+        ).count()
+    
+    def get_availability(self):
+        """Get user's availability schedule"""
+        from models.availability import Availability
+        return Availability.query.filter_by(user_id=self.id, is_available=True).order_by(
+            db.case(
+                (Availability.day_of_week == 'Monday', 1),
+                (Availability.day_of_week == 'Tuesday', 2),
+                (Availability.day_of_week == 'Wednesday', 3),
+                (Availability.day_of_week == 'Thursday', 4),
+                (Availability.day_of_week == 'Friday', 5),
+                (Availability.day_of_week == 'Saturday', 6),
+                (Availability.day_of_week == 'Sunday', 7)
+            )
+        ).all()
+    
+    def set_availability(self, day_of_week, start_time, end_time, is_available=True):
+        """Set availability for a specific day and time"""
+        from models.availability import Availability
+        
+        # Check if availability already exists for this day
+        existing = Availability.query.filter_by(
+            user_id=self.id, 
+            day_of_week=day_of_week
+        ).first()
+        
+        if existing:
+            existing.start_time = start_time
+            existing.end_time = end_time
+            existing.is_available = is_available
+        else:
+            availability = Availability(
+                user_id=self.id,
+                day_of_week=day_of_week,
+                start_time=start_time,
+                end_time=end_time,
+                is_available=is_available
+            )
+            db.session.add(availability)
+        
+        db.session.commit()
+    
+    def is_available_at(self, day_of_week, time_slot):
+        """Check if user is available at a specific day and time"""
+        from models.availability import Availability
+        from datetime import time
+        
+        availability = Availability.query.filter_by(
+            user_id=self.id,
+            day_of_week=day_of_week,
+            is_available=True
+        ).first()
+        
+        if not availability:
+            return False
+        
+        # Check if the time slot overlaps with availability
+        if isinstance(time_slot, str):
+            # Parse time string (e.g., "14:30")
+            hour, minute = map(int, time_slot.split(':'))
+            time_slot = time(hour, minute)
+        
+        return availability.start_time <= time_slot <= availability.end_time
     
     def to_dict(self):
         return {

@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+
+{% block title %}Leaderboard - Skillify{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-trophy me-2"></i>Leaderboard
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h6>Top Performers</h6>
+                            <p class="text-muted">Based on ratings and achievements</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h6>Most Active</h6>
+                            <p class="text-muted">Based on exchanges completed</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h6>Skill Givers</h6>
+                            <p class="text-muted">Based on skills offered</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h6>Task Masters</h6>
+                            <p class="text-muted">Based on daily/weekly tasks</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Rank</th>
+                                <th>User</th>
+                                <th>Badge</th>
+                                <th>Rating</th>
+                                <th>Exchanges</th>
+                                <th>Tasks</th>
+                                <th>Skills</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in leaderboard_users %}
+                            <tr>
+                                <td>
+                                    {% if loop.index == 1 %}
+                                    <span class="badge bg-warning fs-6">🥇</span>
+                                    {% elif loop.index == 2 %}
+                                    <span class="badge bg-secondary fs-6">🥈</span>
+                                    {% elif loop.index == 3 %}
+                                    <span class="badge bg-dark fs-6">🥉</span>
+                                    {% else %}
+                                    <span class="text-muted">{{ loop.index }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        {% if user.profile_photo %}
+                                        <img src="{{ url_for('static', filename='images/profile_photos/' ~ user.profile_photo) }}" 
+                                             class="rounded-circle me-2" style="width: 40px; height: 40px; object-fit: cover;">
+                                        {% else %}
+                                        <div class="bg-light rounded-circle d-flex align-items-center justify-content-center me-2" 
+                                             style="width: 40px; height: 40px;">
+                                            <i class="fas fa-user text-muted"></i>
+                                        </div>
+                                        {% endif %}
+                                        <div>
+                                            <strong>{{ user.name }}</strong>
+                                            {% if user.location %}
+                                            <br><small class="text-muted">{{ user.location }}</small>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    {% if user.badge %}
+                                    <span class="badge bg-{{ 'warning' if user.badge == 'gold' else 'secondary' if user.badge == 'silver' else 'dark' }}">
+                                        <i class="fas fa-{{ 'crown' if user.badge == 'gold' else 'medal' if user.badge == 'silver' else 'award' }} me-1"></i>
+                                        {{ user.badge|title }}
+                                    </span>
+                                    {% else %}
+                                    <span class="badge bg-light text-dark">Bronze</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <span class="text-warning me-1">{{ "%.1f"|format(user.total_rating) }}</span>
+                                        <small class="text-muted">({{ user.total_ratings_count }})</small>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-success">{{ user.exchanges_count }}</span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-info">{{ user.daily_tasks_completed + user.weekly_tasks_completed }}</span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-primary">{{ user.skills_count }}</span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Badge Information -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-medal me-2"></i>Badge System
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 text-center">
+                        <div class="badge bg-dark p-3 mb-2">
+                            <i class="fas fa-award fa-2x"></i>
+                        </div>
+                        <h6>Bronze Badge</h6>
+                        <p class="text-muted small">Default badge for all users</p>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <div class="badge bg-secondary p-3 mb-2">
+                            <i class="fas fa-medal fa-2x"></i>
+                        </div>
+                        <h6>Silver Badge</h6>
+                        <p class="text-muted small">4.0+ rating and 25+ daily tasks</p>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <div class="badge bg-warning p-3 mb-2">
+                            <i class="fas fa-crown fa-2x"></i>
+                        </div>
+                        <h6>Gold Badge</h6>
+                        <p class="text-muted small">4.5+ rating and 50+ daily tasks</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

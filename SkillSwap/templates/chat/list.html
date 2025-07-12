@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}Chat - Skillify{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="fas fa-comments me-2"></i>Chat
+            </h2>
+            <a href="{{ url_for('skills') }}" class="btn btn-outline-primary">
+                <i class="fas fa-search me-2"></i>Find People to Chat
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        {% if chat_rooms %}
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-list me-2"></i>Your Conversations
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for chat_room in chat_rooms %}
+                    {% set other_user = chat_room.get_other_user(current_user.id) %}
+                    {% set last_message = chat_room.messages[-1] if chat_room.messages else None %}
+                    {% set unread_count = chat_room.get_unread_count(current_user.id) %}
+                    
+                    <a href="{{ url_for('start_chat', user_id=other_user.id) }}" 
+                       class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center">
+                            {% if other_user.profile_photo %}
+                            <img src="{{ url_for('static', filename='uploads/' + other_user.profile_photo) }}" 
+                                 class="rounded-circle me-3" width="40" height="40" alt="{{ other_user.name }}">
+                            {% else %}
+                            <div class="bg-secondary rounded-circle me-3 d-flex align-items-center justify-content-center" 
+                                 style="width: 40px; height: 40px;">
+                                <i class="fas fa-user text-white"></i>
+                            </div>
+                            {% endif %}
+                            <div>
+                                <h6 class="mb-1">{{ other_user.name }}</h6>
+                                {% if last_message %}
+                                <small class="text-muted">
+                                    {% if last_message.sender_id == current_user.id %}
+                                    <i class="fas fa-reply me-1"></i>You:
+                                    {% else %}
+                                    <i class="fas fa-user me-1"></i>{{ other_user.name }}:
+                                    {% endif %}
+                                    {{ last_message.message[:50] }}{% if last_message.message|length > 50 %}...{% endif %}
+                                </small>
+                                <br>
+                                <small class="text-muted">{{ last_message.created_at.strftime('%m/%d %H:%M') }}</small>
+                                {% else %}
+                                <small class="text-muted">No messages yet</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% if unread_count > 0 %}
+                        <span class="badge bg-danger rounded-pill">{{ unread_count }}</span>
+                        {% endif %}
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <i class="fas fa-comments fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">No conversations yet</h5>
+                <p class="text-muted">Start chatting with other users by browsing skills and initiating conversations!</p>
+                <a href="{{ url_for('skills') }}" class="btn btn-primary">
+                    <i class="fas fa-search me-2"></i>Browse Skills
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %} 

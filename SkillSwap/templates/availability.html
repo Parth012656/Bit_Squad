@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Availability - Skillify{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="fas fa-calendar-alt me-2"></i>Manage Availability
+            </h2>
+            <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-clock me-2"></i>Set Your Weekly Schedule
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-4">
+                    Set your availability for each day of the week. This helps other users know when you're available for skill exchanges.
+                </p>
+                
+                <form method="POST" action="{{ url_for('update_availability') }}">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <label class="form-label">Day of Week</label>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Start Time</label>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">End Time</label>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Available</label>
+                        </div>
+                    </div>
+                    
+                    {% set days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] %}
+                    {% for day in days %}
+                    {% set day_availability = availabilities|selectattr('day_of_week', 'equalto', day)|first %}
+                    <div class="row mb-3">
+                        <div class="col-md-3">
+                            <strong>{{ day }}</strong>
+                        </div>
+                        <div class="col-md-3">
+                            <input type="time" class="form-control" name="start_time_{{ day }}" 
+                                   value="{{ day_availability.start_time.strftime('%H:%M') if day_availability else '09:00' }}" required>
+                        </div>
+                        <div class="col-md-3">
+                            <input type="time" class="form-control" name="end_time_{{ day }}" 
+                                   value="{{ day_availability.end_time.strftime('%H:%M') if day_availability else '17:00' }}" required>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="is_available_{{ day }}" 
+                                       id="available_{{ day }}" value="true" 
+                                       {{ 'checked' if not day_availability or day_availability.is_available else '' }}>
+                                <label class="form-check-label" for="available_{{ day }}">
+                                    Available
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>Save Availability
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Current Availability Display -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-eye me-2"></i>Current Availability
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if availabilities %}
+                <div class="row">
+                    {% for availability in availabilities %}
+                    <div class="col-md-6 mb-3">
+                        <div class="d-flex justify-content-between align-items-center p-3 border rounded">
+                            <div>
+                                <strong>{{ availability.day_of_week }}</strong>
+                                <br>
+                                <small class="text-muted">
+                                    {{ availability.start_time.strftime('%I:%M %p') }} - {{ availability.end_time.strftime('%I:%M %p') }}
+                                </small>
+                            </div>
+                            <span class="badge bg-success">Available</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+                    <h6 class="text-muted">No availability set</h6>
+                    <p class="text-muted">Set your availability above to help others know when you're free for skill exchanges.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Tips Section -->
+        <div class="card mt-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-lightbulb me-2"></i>Tips for Setting Availability
+                </h5>
+            </div>
+            <div class="card-body">
+                <ul class="mb-0">
+                    <li>Set realistic time slots when you're actually available for skill exchanges</li>
+                    <li>Consider your timezone and mention it in your profile</li>
+                    <li>Update your availability regularly as your schedule changes</li>
+                    <li>Include some weekend hours if possible to accommodate different schedules</li>
+                    <li>Be specific about meeting preferences (in-person, virtual, or hybrid)</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle form submission
+    const form = document.querySelector('form');
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData();
+        const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+        
+        // Collect data for each day
+        days.forEach(day => {
+            const startTime = document.querySelector(`input[name="start_time_${day}"]`).value;
+            const endTime = document.querySelector(`input[name="end_time_${day}"]`).value;
+            const isAvailable = document.querySelector(`input[name="is_available_${day}"]`).checked;
+            
+            if (isAvailable && startTime && endTime) {
+                formData.append('day_of_week', day);
+                formData.append('start_time', startTime);
+                formData.append('end_time', endTime);
+                formData.append('is_available', 'true');
+            }
+        });
+        
+        // Submit the form
+        fetch('{{ url_for("update_availability") }}', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                alert('Error updating availability');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error updating availability');
+        });
+    });
+    
+    // Validate time inputs
+    const timeInputs = document.querySelectorAll('input[type="time"]');
+    timeInputs.forEach(input => {
+        input.addEventListener('change', function() {
+            const startTime = this.parentElement.parentElement.querySelector('input[name^="start_time"]').value;
+            const endTime = this.parentElement.parentElement.querySelector('input[name^="end_time"]').value;
+            
+            if (startTime && endTime && startTime >= endTime) {
+                alert('End time must be after start time');
+                this.value = '';
+            }
+        });
+    });
+});
+</script>
+{% endblock %} 

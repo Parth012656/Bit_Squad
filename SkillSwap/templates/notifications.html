@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block title %}Notifications - Skillify{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-bell me-2"></i>Notifications
+                </h5>
+                <button class="btn btn-outline-light btn-sm" onclick="markAllAsRead()">
+                    <i class="fas fa-check-double me-1"></i>Mark All as Read
+                </button>
+            </div>
+            <div class="card-body">
+                {% if notifications %}
+                    <div class="list-group">
+                        {% for notification in notifications %}
+                        <div class="list-group-item notification-item {{ 'list-group-item-secondary' if notification.is_read else '' }}" 
+                             data-notification-id="{{ notification.id }}"
+                             data-target-type="{{ notification.target_type }}"
+                             data-target-id="{{ notification.target_id }}">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">{{ notification.title }}</h6>
+                                    <p class="mb-1 text-muted">{{ notification.message }}</p>
+                                    <small class="text-muted">
+                                        <i class="fas fa-clock me-1"></i>{{ notification.created_at.strftime('%B %d, %Y at %I:%M %p') }}
+                                    </small>
+                                </div>
+                                <div class="ms-3">
+                                    {% if not notification.is_read %}
+                                    <span class="badge bg-danger">New</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-bell-slash fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No notifications</h5>
+                        <p class="text-muted">You're all caught up!</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle notification clicks
+    const notificationItems = document.querySelectorAll('.notification-item');
+    
+    notificationItems.forEach(item => {
+        item.addEventListener('click', function() {
+            const notificationId = this.dataset.notificationId;
+            const targetType = this.dataset.targetType;
+            const targetId = this.dataset.targetId;
+            
+            // Mark as read
+            fetch(`/api/notifications/${notificationId}/read`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+            
+            // Redirect based on notification type
+            if (targetType && targetId) {
+                switch(targetType) {
+                    case 'exchange':
+                        window.location.href = `/dashboard`;
+                        break;
+                    case 'skill':
+                        window.location.href = `/skills`;
+                        break;
+                    case 'user':
+                        window.location.href = `/dashboard`;
+                        break;
+                    default:
+                        window.location.href = `/dashboard`;
+                }
+            }
+        });
+    });
+});
+
+function markAllAsRead() {
+    fetch('/api/notifications/mark-all-read', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => {
+        if (response.ok) {
+            window.location.reload();
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+}
+</script>
+{% endblock %} 
