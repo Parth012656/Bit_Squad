@@ -152,6 +152,69 @@ class User(UserMixin, db.Model):
             )
         ).count()
     
+    def get_availability(self):
+        """Get user's availability schedule"""
+        from models.availability import Availability
+        return Availability.query.filter_by(user_id=self.id, is_available=True).order_by(
+            db.case(
+                (Availability.day_of_week == 'Monday', 1),
+                (Availability.day_of_week == 'Tuesday', 2),
+                (Availability.day_of_week == 'Wednesday', 3),
+                (Availability.day_of_week == 'Thursday', 4),
+                (Availability.day_of_week == 'Friday', 5),
+                (Availability.day_of_week == 'Saturday', 6),
+                (Availability.day_of_week == 'Sunday', 7)
+            )
+        ).all()
+    
+    def set_availability(self, day_of_week, start_time, end_time, is_available=True):
+        """Set availability for a specific day and time"""
+        from models.availability import Availability
+        
+        # Check if availability already exists for this day
+        existing = Availability.query.filter_by(
+            user_id=self.id, 
+            day_of_week=day_of_week
+        ).first()
+        
+        if existing:
+            existing.start_time = start_time
+            existing.end_time = end_time
+            existing.is_available = is_available
+        else:
+            availability = Availability(
+                user_id=self.id,
+                day_of_week=day_of_week,
+                start_time=start_time,
+                end_time=end_time,
+                is_available=is_available
+            )
+            db.session.add(availability)
+        
+        db.session.commit()
+    
+    def is_available_at(self, day_of_week, time_slot):
+        """Check if user is available at a specific day and time"""
+        from models.availability import Availability
+        from datetime import time
+        
+        availability = Availability.query.filter_by(
+            user_id=self.id,
+            day_of_week=day_of_week,
+            is_available=True
+        ).first()
+        
+        if not availability:
+            return False
+        
+        # Check if the time slot overlaps with availability
+        if isinstance(time_slot, str):
+            # Parse time string (e.g., "14:30")
+            hour, minute = map(int, time_slot.split(':'))
+            time_slot = time(hour, minute)
+        
+        return availability.start_time <= time_slot <= availability.end_time
+    
     def to_dict(self):
         return {
             'id': self.id,

@@ -102,6 +102,16 @@
                                 <small class="text-muted">
                                     <i class="fas fa-search me-1"></i>Skills Required: {{ skill.user_required_skills_count or 0 }}
                                 </small>
+                                <br>
+                                <small class="text-muted">
+                                    <i class="fas fa-clock me-1"></i>
+                                    {% set user_availability = skill.user.get_availability() %}
+                                    {% if user_availability %}
+                                        Available: {{ user_availability|length }} days/week
+                                    {% else %}
+                                        Availability not set
+                                    {% endif %}
+                                </small>
                             </div>
                             
                             <!-- User Rating -->

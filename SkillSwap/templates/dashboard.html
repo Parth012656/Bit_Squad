@@ -42,10 +42,13 @@
                         {{ 'Public' if current_user.is_public else 'Private' }} Profile
                     </button>
                 </form>
-                <div class="d-grid">
-                    <button class="btn btn-outline-primary btn-sm">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('edit_profile') }}" class="btn btn-outline-primary btn-sm">
                         <i class="fas fa-edit me-1"></i>Edit Profile
-                    </button>
+                    </a>
+                    <a href="{{ url_for('availability') }}" class="btn btn-outline-info btn-sm">
+                        <i class="fas fa-calendar-alt me-1"></i>Set Availability
+                    </a>
                 </div>
             </div>
         </div>
@@ -164,10 +167,15 @@
                                                 </form>
                                                 {% endif %}
                                             {% elif req.status == 'Accepted' and (req.offering_user_id == current_user.id or req.requesting_user_id == current_user.id) %}
-                                            <form action="{{ url_for('exchange_action', exchange_id=req.id) }}" method="post" class="d-inline">
-                                                <input type="hidden" name="action" value="complete">
-                                                <button type="submit" class="btn btn-primary btn-sm">Complete</button>
-                                            </form>
+                                            <div class="d-flex gap-1">
+                                                <a href="{{ url_for('schedule_exchange', exchange_id=req.id) }}" class="btn btn-info btn-sm">
+                                                    <i class="fas fa-calendar-plus"></i> Schedule
+                                                </a>
+                                                <form action="{{ url_for('exchange_action', exchange_id=req.id) }}" method="post" class="d-inline">
+                                                    <input type="hidden" name="action" value="complete">
+                                                    <button type="submit" class="btn btn-primary btn-sm">Complete</button>
+                                                </form>
+                                            </div>
                                             {% endif %}
                                         </td>
                                     </tr>

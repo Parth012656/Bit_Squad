@@ -42,6 +42,7 @@ def create_app(config_name='development'):
     from models.admin import PlatformMessage, ModerationAction, Report
     from models.notification import Notification
     from models.chat import ChatRoom, ChatMessage
+    from models.availability import Availability, ExchangeSchedule
     
     @login_manager.user_loader
     def load_user(user_id):
@@ -962,6 +963,109 @@ def create_app(config_name='development'):
         """Get unread chat messages count"""
         count = current_user.get_unread_chat_count()
         return jsonify({'count': count})
+    
+    # Availability routes
+    @app.route('/availability')
+    @login_required
+    def availability():
+        """Manage user availability"""
+        availabilities = current_user.get_availability()
+        return render_template('availability.html', availabilities=availabilities)
+    
+    @app.route('/availability/update', methods=['POST'])
+    @login_required
+    def update_availability():
+        """Update user availability"""
+        day_of_week = request.form.get('day_of_week')
+        start_time_str = request.form.get('start_time')
+        end_time_str = request.form.get('end_time')
+        is_available = request.form.get('is_available') == 'true'
+        
+        if not day_of_week or not start_time_str or not end_time_str:
+            flash('Please fill in all fields')
+            return redirect(url_for('availability'))
+        
+        try:
+            from datetime import time
+            start_time = time.fromisoformat(start_time_str)
+            end_time = time.fromisoformat(end_time_str)
+            
+            current_user.set_availability(day_of_week, start_time, end_time, is_available)
+            flash('Availability updated successfully!')
+        except Exception as e:
+            flash(f'Error updating availability: {str(e)}')
+        
+        return redirect(url_for('availability'))
+    
+    @app.route('/api/availability/<int:user_id>')
+    @login_required
+    def get_user_availability(user_id):
+        """Get availability for a specific user"""
+        user = User.query.get_or_404(user_id)
+        availabilities = user.get_availability()
+        return jsonify([avail.to_dict() for avail in availabilities])
+    
+    @app.route('/exchange/<int:exchange_id>/schedule', methods=['GET', 'POST'])
+    @login_required
+    def schedule_exchange(exchange_id):
+        """Schedule an exchange"""
+        exchange = Exchange.query.get_or_404(exchange_id)
+        
+        # Check if user is part of this exchange
+        if exchange.offering_user_id != current_user.id and exchange.requesting_user_id != current_user.id:
+            flash('You are not authorized to schedule this exchange')
+            return redirect(url_for('dashboard'))
+        
+        if request.method == 'POST':
+            scheduled_date = datetime.strptime(request.form.get('date'), '%Y-%m-%d').date()
+            start_time = time.fromisoformat(request.form.get('start_time'))
+            end_time = time.fromisoformat(request.form.get('end_time'))
+            location = request.form.get('location')
+            meeting_type = request.form.get('meeting_type', 'in_person')
+            meeting_link = request.form.get('meeting_link')
+            notes = request.form.get('notes')
+            
+            # Create or update schedule
+            schedule = ExchangeSchedule.query.filter_by(exchange_id=exchange_id).first()
+            if not schedule:
+                schedule = ExchangeSchedule(exchange_id=exchange_id)
+                db.session.add(schedule)
+            
+            schedule.scheduled_date = scheduled_date
+            schedule.start_time = start_time
+            schedule.end_time = end_time
+            schedule.location = location
+            schedule.meeting_type = meeting_type
+            schedule.meeting_link = meeting_link
+            schedule.notes = notes
+            
+            db.session.commit()
+            
+            # Create notification for the other user
+            other_user_id = exchange.requesting_user_id if exchange.offering_user_id == current_user.id else exchange.offering_user_id
+            create_notification(
+                other_user_id,
+                "Exchange Scheduled",
+                f"Your exchange has been scheduled for {scheduled_date.strftime('%B %d, %Y')} at {start_time.strftime('%I:%M %p')}",
+                "exchange_scheduled",
+                exchange_id,
+                "exchange"
+            )
+            
+            flash('Exchange scheduled successfully!')
+            return redirect(url_for('dashboard'))
+        
+        # Get other user's availability
+        other_user_id = exchange.requesting_user_id if exchange.offering_user_id == current_user.id else exchange.offering_user_id
+        other_user = User.query.get(other_user_id)
+        other_availability = other_user.get_availability() if other_user else []
+        
+        from datetime import date
+        return render_template('schedule_exchange.html', 
+                            exchange=exchange, 
+                            other_user=other_user,
+                            other_availability=other_availability,
+                            today=date.today().isoformat())
     
     return app
 

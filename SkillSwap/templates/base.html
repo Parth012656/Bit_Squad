@@ -26,6 +26,13 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('skills') }}">Browse Skills</a>
                     </li>
+                    {% if current_user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('availability') }}">
+                            <i class="fas fa-calendar-alt me-1"></i>Availability
+                        </a>
+                    </li>
+                    {% endif %}
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('leaderboard') }}">Leaderboard</a>
                     </li>
