@@ -185,7 +185,7 @@ def create_app(config_name='development'):
         report.resolved_by = current_user.id
         db.session.commit()
         
-        flash(f'Report
+        flash(f'Report resolved successfully.')
         return redirect(url_for('admin_reports'))
     
     @app.route('/admin/messages')
