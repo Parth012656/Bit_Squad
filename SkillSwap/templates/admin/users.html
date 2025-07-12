@@ -1,10 +1,12 @@
 {% extends "base.html" %}
 
+{# Page title shown in the browser tab #}
 {% block title %}User Management - Skillify Admin{% endblock %}
 
 {% block content %}
 <div class="row">
     <div class="col-12">
+        <!-- Header with title and back button -->
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2>
                 <i class="fas fa-users me-2"></i>User Management
@@ -20,11 +22,14 @@
     <div class="col-12">
         <div class="card">
             <div class="card-header">
+                <!-- Section title inside the card -->
                 <h5 class="mb-0">
                     <i class="fas fa-list me-2"></i>All Users
                 </h5>
             </div>
             <div class="card-body">
+
+                {# If users exist, display them in a table #}
                 {% if users.items %}
                 <div class="table-responsive">
                     <table class="table table-striped">
@@ -45,6 +50,7 @@
                                 <td>{{ user.id }}</td>
                                 <td>
                                     <div class="d-flex align-items-center">
+                                        {# Show profile photo if uploaded, else show placeholder icon #}
                                         {% if user.profile_photo %}
                                         <img src="{{ url_for('static', filename='images/profile_photos/' ~ user.profile_photo) }}" 
                                              class="rounded-circle me-2" style="width: 32px; height: 32px; object-fit: cover;">
@@ -59,11 +65,13 @@
                                 </td>
                                 <td>{{ user.email }}</td>
                                 <td>
+                                    {# Color-coded role badges #}
                                     <span class="badge bg-{{ 'danger' if user.role == 'admin' else 'primary' if user.role == 'moderator' else 'secondary' }}">
                                         {{ user.role.title() }}
                                     </span>
                                 </td>
                                 <td>
+                                    {# Show current user status: Active or Banned #}
                                     {% if user.is_banned %}
                                     <span class="badge bg-danger">Banned</span>
                                     {% else %}
@@ -72,6 +80,7 @@
                                 </td>
                                 <td>{{ user.created_at.strftime('%Y-%m-%d') if user.created_at else 'Unknown' }}</td>
                                 <td>
+                                    {# If user is banned, show "Unban" button, else show "Ban" modal trigger #}
                                     {% if user.is_banned %}
                                     <form action="{{ url_for('unban_user', user_id=user.id) }}" method="post" class="d-inline">
                                         <button type="submit" class="btn btn-success btn-sm" 
@@ -92,7 +101,7 @@
                     </table>
                 </div>
                 
-                <!-- Pagination -->
+                {# Pagination section if multiple pages exist #}
                 {% if users.pages > 1 %}
                 <nav aria-label="Users pagination">
                     <ul class="pagination justify-content-center">
@@ -102,6 +111,7 @@
                         </li>
                         {% endif %}
                         
+                        {# Loop through all pages (with ellipses when needed) #}
                         {% for page_num in users.iter_pages() %}
                             {% if page_num %}
                                 {% if page_num != users.page %}
@@ -130,6 +140,7 @@
                 {% endif %}
                 
                 {% else %}
+                {# Fallback for when no users are found #}
                 <div class="text-center py-4">
                     <i class="fas fa-users fa-3x text-muted mb-3"></i>
                     <h5 class="text-muted">No users found</h5>
@@ -140,7 +151,9 @@
     </div>
 </div>
 
-<!-- Ban User Modals -->
+{# ============================== #}
+{# Ban User Modal (one per user) #}
+{# ============================== #}
 {% for user in users.items %}
 {% if not user.is_banned %}
 <div class="modal fade" id="banModal{{ user.id }}" tabindex="-1">
@@ -173,4 +186,4 @@
 </div>
 {% endif %}
 {% endfor %}
-{% endblock %} 
+{% endblock %}
