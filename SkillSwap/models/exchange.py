@@ -12,6 +12,15 @@ class Exchange(db.Model):
     message = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        if not self.updated_at:
+            self.updated_at = datetime.utcnow()
+    
+    def update_timestamp(self):
+        """Safely update the timestamp without affecting other fields"""
+        self.updated_at = datetime.utcnow()
     completed_at = db.Column(db.DateTime)
     rating = db.Column(db.Integer, nullable=True)
     feedback = db.Column(db.Text, nullable=True)

@@ -93,12 +93,19 @@
                                             <span class="badge bg-secondary">{{ skill.level }}</span>
                                         </div>
                                         <div class="mt-2">
-                                            <button class="btn btn-outline-primary btn-sm">
+                                            <button class="btn btn-outline-primary btn-sm edit-skill-btn" 
+                                                    data-skill-id="{{ skill.id }}"
+                                                    data-skill-name="{{ skill.name }}"
+                                                    data-skill-description="{{ skill.description }}"
+                                                    data-skill-category="{{ skill.category }}"
+                                                    data-skill-level="{{ skill.level }}">
                                                 <i class="fas fa-edit me-1"></i>Edit
                                             </button>
-                                            <button class="btn btn-outline-danger btn-sm">
-                                                <i class="fas fa-trash me-1"></i>Delete
-                                            </button>
+                                            <form action="{{ url_for('delete_skill', skill_id=skill.id) }}" method="post" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this skill?')">
+                                                <button type="submit" class="btn btn-outline-danger btn-sm">
+                                                    <i class="fas fa-trash me-1"></i>Delete
+                                                </button>
+                                            </form>
                                         </div>
                                     </div>
                                 </div>
@@ -313,6 +320,68 @@
     </div>
 </div>
 
+<!-- Edit Skill Modal -->
+<div class="modal fade" id="editSkillModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-edit me-2"></i>Edit Skill
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editSkillForm">
+                    <input type="hidden" id="editSkillId">
+                    <div class="mb-3">
+                        <label for="editSkillName" class="form-label">Skill Name</label>
+                        <input type="text" class="form-control" id="editSkillName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editSkillDescription" class="form-label">Description</label>
+                        <textarea class="form-control" id="editSkillDescription" rows="3" required></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="editSkillCategory" class="form-label">Category</label>
+                                <select class="form-select" id="editSkillCategory" required>
+                                    <option value="">Select Category</option>
+                                    <option value="Technology">Technology</option>
+                                    <option value="Language">Language</option>
+                                    <option value="Arts">Arts</option>
+                                    <option value="Sports">Sports</option>
+                                    <option value="Cooking">Cooking</option>
+                                    <option value="Music">Music</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="editSkillLevel" class="form-label">Level</label>
+                                <select class="form-select" id="editSkillLevel" required>
+                                    <option value="">Select Level</option>
+                                    <option value="Beginner">Beginner</option>
+                                    <option value="Intermediate">Intermediate</option>
+                                    <option value="Advanced">Advanced</option>
+                                    <option value="Expert">Expert</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="updateSkill()">
+                    <i class="fas fa-save me-2"></i>Update Skill
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Feedback Modals -->
 {% for ex in completed_exchanges %}
 {% if not ex.rating or not ex.feedback %}
@@ -358,6 +427,7 @@
 
 {% block scripts %}
 <script>
+// Add skill functionality
 function addSkill() {
     const form = document.getElementById('addSkillForm');
     const formData = {
@@ -384,5 +454,61 @@ function addSkill() {
         console.error('Error:', error);
     });
 }
+
+// Edit skill functionality
+function editSkill(skillId, skillName, skillDescription, skillCategory, skillLevel) {
+    document.getElementById('editSkillId').value = skillId;
+    document.getElementById('editSkillName').value = skillName;
+    document.getElementById('editSkillDescription').value = skillDescription;
+    document.getElementById('editSkillCategory').value = skillCategory;
+    document.getElementById('editSkillLevel').value = skillLevel;
+    
+    const editModal = new bootstrap.Modal(document.getElementById('editSkillModal'));
+    editModal.show();
+}
+
+// Update skill functionality
+function updateSkill() {
+    const skillId = document.getElementById('editSkillId').value;
+    const formData = {
+        name: document.getElementById('editSkillName').value,
+        description: document.getElementById('editSkillDescription').value,
+        category: document.getElementById('editSkillCategory').value,
+        level: document.getElementById('editSkillLevel').value
+    };
+
+    fetch(`/api/skills/${skillId}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+}
+
+// Add event listeners for edit buttons
+document.addEventListener('DOMContentLoaded', function() {
+    const editButtons = document.querySelectorAll('.edit-skill-btn');
+    editButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const skillId = this.getAttribute('data-skill-id');
+            const skillName = this.getAttribute('data-skill-name');
+            const skillDescription = this.getAttribute('data-skill-description');
+            const skillCategory = this.getAttribute('data-skill-category');
+            const skillLevel = this.getAttribute('data-skill-level');
+            
+            editSkill(skillId, skillName, skillDescription, skillCategory, skillLevel);
+        });
+    });
+});
 </script>
 {% endblock %} 

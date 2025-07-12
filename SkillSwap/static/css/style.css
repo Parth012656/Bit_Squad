@@ -545,4 +545,14 @@ footer {
 /* Card header styling */
 .card-header.bg-primary {
     background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%) !important;
+}
+
+/* Golden stars for ratings */
+.text-warning .fas.fa-star {
+    color: #FFD700 !important;
+}
+
+.text-warning .fas.fa-star-o {
+    color: #FFD700 !important;
+    opacity: 0.3;
 } 

@@ -525,17 +525,37 @@ def create_app(config_name='development'):
     def exchange_action(exchange_id):
         action = request.form.get('action')
         exchange = Exchange.query.get_or_404(exchange_id)
+        
+        # Validate that the exchange has valid skill references
+        if not exchange.offered_skill_id or not exchange.requested_skill_id:
+            flash('Invalid exchange data. Please contact support.')
+            return redirect(url_for('dashboard'))
+        
         if action == 'accept' and exchange.status == 'Pending' and exchange.requesting_user_id == current_user.id:
             exchange.status = 'Accepted'
+            exchange.update_timestamp()
         elif action == 'reject' and exchange.status == 'Pending' and exchange.requesting_user_id == current_user.id:
             exchange.status = 'Rejected'
+            exchange.update_timestamp()
         elif action == 'cancel' and exchange.status == 'Pending' and exchange.offering_user_id == current_user.id:
             exchange.status = 'Cancelled'
+            exchange.update_timestamp()
         elif action == 'complete' and exchange.status == 'Accepted' and (exchange.offering_user_id == current_user.id or exchange.requesting_user_id == current_user.id):
             exchange.status = 'Completed'
             exchange.completed_at = datetime.utcnow()
-        db.session.commit()
-        flash(f'Exchange {action}ed successfully!')
+            exchange.update_timestamp()
+        else:
+            flash('Invalid action or insufficient permissions.')
+            return redirect(url_for('dashboard'))
+        
+        try:
+            db.session.commit()
+            flash(f'Exchange {action}ed successfully!')
+        except Exception as e:
+            db.session.rollback()
+            flash('Error updating exchange. Please try again.')
+            print(f"Exchange update error: {e}")
+        
         return redirect(url_for('dashboard'))
 
 
@@ -556,7 +576,11 @@ def create_app(config_name='development'):
             
             if user and check_password_hash(user.password_hash, password):
                 login_user(user)
-                return redirect(url_for('dashboard'))
+                # Redirect admins to admin panel
+                if user.role == 'admin':
+                    return redirect(url_for('admin_dashboard'))
+                else:
+                    return redirect(url_for('dashboard'))
             else:
                 flash('Invalid email or password')
         
@@ -631,11 +655,53 @@ def create_app(config_name='development'):
             name=data['name'],
             description=data['description'],
             category=data['category'],
+            level=data['level'],
             user_id=current_user.id
         )
         db.session.add(skill)
         db.session.commit()
         return jsonify(skill.to_dict()), 201
+    
+    @app.route('/api/skills/<int:skill_id>', methods=['PUT'])
+    @login_required
+    def api_update_skill(skill_id):
+        """API endpoint to update a skill"""
+        skill = Skill.query.get_or_404(skill_id)
+        
+        # Check if user owns this skill
+        if skill.user_id != current_user.id:
+            return jsonify({'error': 'Unauthorized'}), 403
+        
+        data = request.get_json()
+        
+        skill.name = data['name']
+        skill.description = data['description']
+        skill.category = data['category']
+        skill.level = data['level']
+        
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Skill updated successfully'
+        })
+    
+    @app.route('/delete_skill/<int:skill_id>', methods=['POST'])
+    @login_required
+    def delete_skill(skill_id):
+        """Delete a skill"""
+        skill = Skill.query.get_or_404(skill_id)
+        
+        # Check if user owns this skill
+        if skill.user_id != current_user.id:
+            flash('You can only delete your own skills!')
+            return redirect(url_for('dashboard'))
+        
+        db.session.delete(skill)
+        db.session.commit()
+        
+        flash('Skill deleted successfully!')
+        return redirect(url_for('dashboard'))
     
 
     
@@ -836,6 +902,17 @@ def create_app(config_name='development'):
         if existing_exchange:
             return jsonify({'error': 'You already have a pending exchange for this skill'}), 400
         
+        # Validate skill IDs before creating exchange
+        if not data.get('offering_skill_id') or not data.get('requesting_skill_id'):
+            return jsonify({'error': 'Invalid skill IDs provided'}), 400
+        
+        # Verify skills exist
+        offering_skill = Skill.query.get(data['offering_skill_id'])
+        requesting_skill = Skill.query.get(data['requesting_skill_id'])
+        
+        if not offering_skill or not requesting_skill:
+            return jsonify({'error': 'One or both skills not found'}), 404
+        
         exchange = Exchange(
             offering_user_id=current_user.id,
             requesting_user_id=requesting_skill.user_id,
@@ -845,8 +922,13 @@ def create_app(config_name='development'):
             status='Pending'
         )
         
-        db.session.add(exchange)
-        db.session.commit()
+        try:
+            db.session.add(exchange)
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            print(f"Exchange creation error: {e}")
+            return jsonify({'error': 'Failed to create exchange'}), 500
         
         # Create notification for the skill owner
         create_notification(
