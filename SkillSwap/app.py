@@ -729,7 +729,8 @@ def create_app(config_name='development'):
     @login_required
     def notifications():
         """Show all notifications"""
-        return render_template('notifications.html')
+        notifications = Notification.query.filter_by(user_id=current_user.id).order_by(Notification.created_at.desc()).all()
+        return render_template('notifications.html', notifications=notifications)
     
     # API Routes for Notifications
     @app.route('/api/notifications/<int:notification_id>/read', methods=['POST'])
