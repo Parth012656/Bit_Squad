@@ -1,12 +1,13 @@
 {% extends "base.html" %}
 
-{# Page title shown in the browser tab #}
+{# Set the page title that appears in the browser tab #}
 {% block title %}User Management - Skillify Admin{% endblock %}
 
 {% block content %}
+
+<!-- Page header with title and back button -->
 <div class="row">
     <div class="col-12">
-        <!-- Header with title and back button -->
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2>
                 <i class="fas fa-users me-2"></i>User Management
@@ -18,18 +19,18 @@
     </div>
 </div>
 
+<!-- Users table section -->
 <div class="row">
     <div class="col-12">
         <div class="card">
             <div class="card-header">
-                <!-- Section title inside the card -->
                 <h5 class="mb-0">
                     <i class="fas fa-list me-2"></i>All Users
                 </h5>
             </div>
             <div class="card-body">
 
-                {# If users exist, display them in a table #}
+                {# Check if any user data exists #}
                 {% if users.items %}
                 <div class="table-responsive">
                     <table class="table table-striped">
@@ -45,12 +46,13 @@
                             </tr>
                         </thead>
                         <tbody>
+                            {# Loop through each user and display their info #}
                             {% for user in users.items %}
                             <tr>
                                 <td>{{ user.id }}</td>
                                 <td>
                                     <div class="d-flex align-items-center">
-                                        {# Show profile photo if uploaded, else show placeholder icon #}
+                                        {# Show profile photo if available, otherwise show a placeholder #}
                                         {% if user.profile_photo %}
                                         <img src="{{ url_for('static', filename='images/profile_photos/' ~ user.profile_photo) }}" 
                                              class="rounded-circle me-2" style="width: 32px; height: 32px; object-fit: cover;">
@@ -64,23 +66,27 @@
                                     </div>
                                 </td>
                                 <td>{{ user.email }}</td>
+
+                                {# Show role badge (admin, moderator, or user) with different colors #}
                                 <td>
-                                    {# Color-coded role badges #}
                                     <span class="badge bg-{{ 'danger' if user.role == 'admin' else 'primary' if user.role == 'moderator' else 'secondary' }}">
                                         {{ user.role.title() }}
                                     </span>
                                 </td>
+
+                                {# Show user status as Active or Banned #}
                                 <td>
-                                    {# Show current user status: Active or Banned #}
                                     {% if user.is_banned %}
                                     <span class="badge bg-danger">Banned</span>
                                     {% else %}
                                     <span class="badge bg-success">Active</span>
                                     {% endif %}
                                 </td>
+
                                 <td>{{ user.created_at.strftime('%Y-%m-%d') if user.created_at else 'Unknown' }}</td>
+
                                 <td>
-                                    {# If user is banned, show "Unban" button, else show "Ban" modal trigger #}
+                                    {# If user is banned, show unban button. Else, show ban modal trigger #}
                                     {% if user.is_banned %}
                                     <form action="{{ url_for('unban_user', user_id=user.id) }}" method="post" class="d-inline">
                                         <button type="submit" class="btn btn-success btn-sm" 
@@ -100,18 +106,18 @@
                         </tbody>
                     </table>
                 </div>
-                
-                {# Pagination section if multiple pages exist #}
+
+                <!-- Pagination controls (only show if more than one page of users) -->
                 {% if users.pages > 1 %}
-                <nav aria-label="Users pagination">
+                <nav aria-label="User list pagination">
                     <ul class="pagination justify-content-center">
                         {% if users.has_prev %}
                         <li class="page-item">
                             <a class="page-link" href="{{ url_for('admin_users', page=users.prev_num) }}">Previous</a>
                         </li>
                         {% endif %}
-                        
-                        {# Loop through all pages (with ellipses when needed) #}
+
+                        {# Display page numbers with ellipses for skipped ranges #}
                         {% for page_num in users.iter_pages() %}
                             {% if page_num %}
                                 {% if page_num != users.page %}
@@ -129,7 +135,7 @@
                             </li>
                             {% endif %}
                         {% endfor %}
-                        
+
                         {% if users.has_next %}
                         <li class="page-item">
                             <a class="page-link" href="{{ url_for('admin_users', page=users.next_num) }}">Next</a>
@@ -138,9 +144,9 @@
                     </ul>
                 </nav>
                 {% endif %}
-                
+
                 {% else %}
-                {# Fallback for when no users are found #}
+                <!-- If no users found, show a friendly message -->
                 <div class="text-center py-4">
                     <i class="fas fa-users fa-3x text-muted mb-3"></i>
                     <h5 class="text-muted">No users found</h5>
@@ -151,9 +157,7 @@
     </div>
 </div>
 
-{# ============================== #}
-{# Ban User Modal (one per user) #}
-{# ============================== #}
+<!-- Ban confirmation modals for each active user -->
 {% for user in users.items %}
 {% if not user.is_banned %}
 <div class="modal fade" id="banModal{{ user.id }}" tabindex="-1">
@@ -167,6 +171,8 @@
             </div>
             <div class="modal-body">
                 <p>Are you sure you want to ban <strong>{{ user.name }}</strong>?</p>
+
+                <!-- Ban form: admin must provide a reason -->
                 <form action="{{ url_for('ban_user', user_id=user.id) }}" method="post">
                     <div class="mb-3">
                         <label for="reason{{ user.id }}" class="form-label">Reason for ban:</label>
@@ -186,4 +192,5 @@
 </div>
 {% endif %}
 {% endfor %}
+
 {% endblock %}
