@@ -33,6 +33,14 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('dashboard') }}">Dashboard</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('chat_list') }}">
+                            <i class="fas fa-comments me-1"></i>Chat
+                            {% if current_user.get_unread_chat_count() > 0 %}
+                            <span class="badge bg-danger ms-1">{{ current_user.get_unread_chat_count() }}</span>
+                            {% endif %}
+                        </a>
+                    </li>
                     {% endif %}
                 </ul>
                 <ul class="navbar-nav">

@@ -41,6 +41,7 @@ def create_app(config_name='development'):
     from models.exchange import Exchange
     from models.admin import PlatformMessage, ModerationAction, Report
     from models.notification import Notification
+    from models.chat import ChatRoom, ChatMessage
     
     @login_manager.user_loader
     def load_user(user_id):
@@ -407,10 +408,10 @@ def create_app(config_name='development'):
     @login_required
     @admin_required
     def update_all_badges():
-        """Update badges for all users based on current ratings and activity"""
+        """Update badges for all users based on current ratings only"""
         try:
             User.update_all_badges()
-            flash('All user badges have been updated successfully!')
+            flash('All user badges have been updated based on ratings!')
         except Exception as e:
             flash(f'Error updating badges: {str(e)}')
         return redirect(url_for('admin_dashboard'))
@@ -861,9 +862,106 @@ def create_app(config_name='development'):
             'message': 'Exchange proposal created successfully'
         }), 201
     
-
+    # Chat routes
+    @app.route('/chat')
+    @login_required
+    def chat_list():
+        """Show list of chat rooms"""
+        chat_rooms = current_user.get_chat_rooms()
+        return render_template('chat/list.html', chat_rooms=chat_rooms)
     
-
+    @app.route('/chat/<int:user_id>')
+    @login_required
+    def start_chat(user_id):
+        """Start or continue chat with a user"""
+        if user_id == current_user.id:
+            flash('You cannot chat with yourself!')
+            return redirect(url_for('chat_list'))
+        
+        other_user = User.query.get_or_404(user_id)
+        chat_room = current_user.get_or_create_chat_room(user_id)
+        
+        # Mark messages as read
+        ChatMessage.query.filter_by(
+            chat_room_id=chat_room.id,
+            sender_id=other_user.id,
+            is_read=False
+        ).update({'is_read': True})
+        db.session.commit()
+        
+        return render_template('chat/room.html', chat_room=chat_room, other_user=other_user)
+    
+    @app.route('/api/chat/<int:chat_room_id>/messages', methods=['GET'])
+    @login_required
+    def get_chat_messages(chat_room_id):
+        """Get messages for a chat room"""
+        chat_room = ChatRoom.query.get_or_404(chat_room_id)
+        
+        # Check if user is part of this chat room
+        if chat_room.user1_id != current_user.id and chat_room.user2_id != current_user.id:
+            return jsonify({'error': 'Unauthorized'}), 403
+        
+        messages = ChatMessage.query.filter_by(chat_room_id=chat_room_id).order_by(ChatMessage.created_at).all()
+        
+        return jsonify([{
+            'id': msg.id,
+            'sender_id': msg.sender_id,
+            'message': msg.message,
+            'created_at': msg.created_at.isoformat(),
+            'is_mine': msg.sender_id == current_user.id
+        } for msg in messages])
+    
+    @app.route('/api/chat/<int:chat_room_id>/send', methods=['POST'])
+    @login_required
+    def send_message(chat_room_id):
+        """Send a message in a chat room"""
+        chat_room = ChatRoom.query.get_or_404(chat_room_id)
+        
+        # Check if user is part of this chat room
+        if chat_room.user1_id != current_user.id and chat_room.user2_id != current_user.id:
+            return jsonify({'error': 'Unauthorized'}), 403
+        
+        message_text = request.json.get('message', '').strip()
+        if not message_text:
+            return jsonify({'error': 'Message cannot be empty'}), 400
+        
+        # Create new message
+        message = ChatMessage(
+            chat_room_id=chat_room_id,
+            sender_id=current_user.id,
+            message=message_text
+        )
+        
+        # Update last message time
+        chat_room.last_message_at = datetime.utcnow()
+        
+        db.session.add(message)
+        db.session.commit()
+        
+        # Create notification for the other user
+        other_user_id = chat_room.get_other_user(current_user.id).id
+        create_notification(
+            other_user_id,
+            f"New message from {current_user.name}",
+            message_text[:50] + "..." if len(message_text) > 50 else message_text,
+            "chat_message",
+            chat_room_id,
+            "chat_room"
+        )
+        
+        return jsonify({
+            'id': message.id,
+            'message': message.message,
+            'created_at': message.created_at.isoformat(),
+            'sender_id': message.sender_id
+        }), 201
+    
+    @app.route('/api/chat/unread-count')
+    @login_required
+    def get_unread_chat_count():
+        """Get unread chat messages count"""
+        count = current_user.get_unread_chat_count()
+        return jsonify({'count': count})
     
     return app
 

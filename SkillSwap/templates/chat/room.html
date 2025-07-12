@@ -1,0 +1,214 @@
+{% extends "base.html" %}
+
+{% block title %}Chat with {{ other_user.name }} - Skillify{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div class="d-flex align-items-center">
+                <a href="{{ url_for('chat_list') }}" class="btn btn-outline-secondary me-3">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+                <div class="d-flex align-items-center">
+                    {% if other_user.profile_photo %}
+                    <img src="{{ url_for('static', filename='uploads/' + other_user.profile_photo) }}" 
+                         class="rounded-circle me-3" width="50" height="50" alt="{{ other_user.name }}">
+                    {% else %}
+                    <div class="bg-secondary rounded-circle me-3 d-flex align-items-center justify-content-center" 
+                         style="width: 50px; height: 50px;">
+                        <i class="fas fa-user text-white"></i>
+                    </div>
+                    {% endif %}
+                    <div>
+                        <h4 class="mb-0">{{ other_user.name }}</h4>
+                        <small class="text-muted">
+                            {% if other_user.badge %}
+                            <span class="badge bg-{{ 'warning' if other_user.badge == 'gold' else 'secondary' if other_user.badge == 'silver' else 'dark' }} me-2">
+                                <i class="fas fa-{{ 'crown' if other_user.badge == 'gold' else 'medal' if other_user.badge == 'silver' else 'award' }}"></i>
+                                {{ other_user.badge.title() }}
+                            </span>
+                            {% endif %}
+                            Rating: {{ "%.1f"|format(other_user.total_rating) }}/5
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card">
+            <div class="card-body p-0">
+                <!-- Chat Messages Container -->
+                <div id="chatMessages" class="chat-messages p-3" style="height: 400px; overflow-y: auto;">
+                    <!-- Messages will be loaded here -->
+                </div>
+                
+                <!-- Message Input -->
+                <div class="chat-input p-3 border-top">
+                    <form id="messageForm" class="d-flex">
+                        <input type="text" id="messageInput" class="form-control me-2" 
+                               placeholder="Type your message..." autocomplete="off">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chat Room Data -->
+<script>
+const chatRoomId = parseInt('{{ chat_room.id }}');
+const currentUserId = parseInt('{{ current_user.id }}');
+const otherUserId = parseInt('{{ other_user.id }}');
+</script>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const chatMessages = document.getElementById('chatMessages');
+    const messageForm = document.getElementById('messageForm');
+    const messageInput = document.getElementById('messageInput');
+    
+    let messages = [];
+    
+    // Load messages
+    function loadMessages() {
+        fetch(`/api/chat/${chatRoomId}/messages`)
+            .then(response => response.json())
+            .then(data => {
+                messages = data;
+                displayMessages();
+                scrollToBottom();
+            })
+            .catch(error => console.error('Error loading messages:', error));
+    }
+    
+    // Display messages
+    function displayMessages() {
+        chatMessages.innerHTML = '';
+        messages.forEach(message => {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${message.is_mine ? 'message-mine' : 'message-other'} mb-3`;
+            
+            const time = new Date(message.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            
+            messageDiv.innerHTML = `
+                <div class="message-content">
+                    <div class="message-text">${escapeHtml(message.message)}</div>
+                    <small class="message-time text-muted">${time}</small>
+                </div>
+            `;
+            
+            chatMessages.appendChild(messageDiv);
+        });
+    }
+    
+    // Send message
+    function sendMessage(messageText) {
+        fetch(`/api/chat/${chatRoomId}/send`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({message: messageText})
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert('Error sending message: ' + data.error);
+            } else {
+                messageInput.value = '';
+                loadMessages();
+            }
+        })
+        .catch(error => console.error('Error sending message:', error));
+    }
+    
+    // Scroll to bottom
+    function scrollToBottom() {
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+    
+    // Escape HTML
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
+    // Event listeners
+    messageForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const messageText = messageInput.value.trim();
+        if (messageText) {
+            sendMessage(messageText);
+        }
+    });
+    
+    // Auto-refresh messages every 5 seconds
+    loadMessages();
+    setInterval(loadMessages, 5000);
+});
+</script>
+
+<style>
+.chat-messages {
+    background-color: #f8f9fa;
+}
+
+.message {
+    display: flex;
+    margin-bottom: 1rem;
+}
+
+.message-mine {
+    justify-content: flex-end;
+}
+
+.message-other {
+    justify-content: flex-start;
+}
+
+.message-content {
+    max-width: 70%;
+    padding: 0.75rem 1rem;
+    border-radius: 1rem;
+    position: relative;
+}
+
+.message-mine .message-content {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-bottom-right-radius: 0.25rem;
+}
+
+.message-other .message-content {
+    background: white;
+    color: #333;
+    border: 1px solid #e9ecef;
+    border-bottom-left-radius: 0.25rem;
+}
+
+.message-text {
+    margin-bottom: 0.25rem;
+    word-wrap: break-word;
+}
+
+.message-time {
+    font-size: 0.75rem;
+    opacity: 0.8;
+}
+
+.chat-input {
+    background: white;
+}
+</style>
+{% endblock %} 

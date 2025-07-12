@@ -38,6 +38,11 @@ class User(UserMixin, db.Model):
     exchanges_requested = db.relationship('Exchange', foreign_keys='Exchange.requesting_user_id', backref='requesting_user', lazy=True)
     notifications = db.relationship('Notification', backref='user', lazy=True, order_by='Notification.created_at.desc()')
     
+    # Chat relationships
+    chat_rooms_user1 = db.relationship('ChatRoom', foreign_keys='ChatRoom.user1_id', backref='user1_rel', lazy=True)
+    chat_rooms_user2 = db.relationship('ChatRoom', foreign_keys='ChatRoom.user2_id', backref='user2_rel', lazy=True)
+    chat_messages = db.relationship('ChatMessage', foreign_keys='ChatMessage.sender_id', backref='sender_rel', lazy=True)
+    
     def set_password(self, password):
         self.password_hash = generate_password_hash(password, method='pbkdf2:sha256')
     
@@ -67,23 +72,18 @@ class User(UserMixin, db.Model):
         self.update_badge()
     
     def update_badge(self):
-        """Update user badge based on rating and activity"""
-        # Calculate total activity score
-        total_activity = self.daily_tasks_completed + self.weekly_tasks_completed
-        
-        # Update badge based on rating and activity
-        if self.total_rating >= 4.5 and total_activity >= 30:
+        """Update user badge based on rating only"""
+        # Update badge based on rating only
+        if self.total_rating >= 4.5:
             self.badge = 'gold'
-        elif self.total_rating >= 4.0 and total_activity >= 15:
-            self.badge = 'silver'
-        elif self.total_rating >= 3.5 and total_activity >= 5:
+        elif self.total_rating >= 4.0:
             self.badge = 'silver'
         else:
             self.badge = 'bronze'
     
     @classmethod
     def update_all_badges(cls):
-        """Update badges for all users"""
+        """Update badges for all users based on ratings only"""
         users = cls.query.all()
         for user in users:
             user.update_badge()
@@ -107,6 +107,50 @@ class User(UserMixin, db.Model):
         })
         
         self.achievements = json.dumps(achievements_list)
+    
+    def get_chat_rooms(self):
+        """Get all chat rooms for this user"""
+        from models.chat import ChatRoom
+        return ChatRoom.query.filter(
+            db.or_(
+                ChatRoom.user1_id == self.id,
+                ChatRoom.user2_id == self.id
+            )
+        ).order_by(ChatRoom.last_message_at.desc()).all()
+    
+    def get_or_create_chat_room(self, other_user_id):
+        """Get existing chat room or create new one with another user"""
+        from models.chat import ChatRoom
+        # Check if chat room already exists
+        existing_room = ChatRoom.query.filter(
+            db.or_(
+                db.and_(ChatRoom.user1_id == self.id, ChatRoom.user2_id == other_user_id),
+                db.and_(ChatRoom.user1_id == other_user_id, ChatRoom.user2_id == self.id)
+            )
+        ).first()
+        
+        if existing_room:
+            return existing_room
+        
+        # Create new chat room
+        new_room = ChatRoom(user1_id=self.id, user2_id=other_user_id)
+        db.session.add(new_room)
+        db.session.commit()
+        return new_room
+    
+    def get_unread_chat_count(self):
+        """Get total unread messages count"""
+        from models.chat import ChatMessage, ChatRoom
+        return ChatMessage.query.join(ChatRoom).filter(
+            db.and_(
+                ChatMessage.sender_id != self.id,
+                ChatMessage.is_read == False,
+                db.or_(
+                    ChatRoom.user1_id == self.id,
+                    ChatRoom.user2_id == self.id
+                )
+            )
+        ).count()
     
     def to_dict(self):
         return {
